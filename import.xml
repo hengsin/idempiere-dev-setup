@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" default="default">  
+<taskdef name="groovy"
+         classname="org.codehaus.groovy.ant.Groovy"
+         classpath="groovy-all-2.4.17.jar" />  
+<target name="default">
+    <groovy>
+		import java.io.*;
+		import java.util.*;
+		import java.util.regex.*;
+		import java.time.LocalDateTime;
+
+		import org.eclipse.core.resources.*;
+		import org.eclipse.core.runtime.*;
+		import org.eclipse.core.runtime.jobs.Job;
+		import org.eclipse.equinox.app.*;
+		import org.osgi.framework.*;
+		import org.eclipse.pde.core.target.ITargetPlatformService;
+		import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
+
+		import static groovy.io.FileType.*
+ 
+        bundle = org.eclipse.core.runtime.Platform.getBundle("org.eclipse.core.resources");
+        resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
+        workspace = resPlugin.getWorkspace();
+        
+        println "** " + LocalDateTime.now().toString() + " Import projects ... ";
+        
+        def groovySrcDir = new File('idempiere');
+        
+		groovySrcDir.eachFile {
+            fullPath = it.getAbsolutePath();			
+			if (fullPath.endsWith("org.idempiere.javadoc") || fullPath.endsWith("ztl") || fullPath.endsWith("selenese") 
+				|| fullPath.endsWith("doc") || fullPath.endsWith("fitnesse") || fullPath.endsWith("migration")
+				|| fullPath.endsWith("event.test") || fullPath.endsWith("org.adempiere.report.jasper.fragment.test") 
+				|| fullPath.endsWith("utils_dev") || fullPath.endsWith("db")
+				|| fullPath.endsWith("org.adempiere.ui.zk.example")
+				|| fullPath.endsWith("org.idempiere.webservices.client-feature") || fullPath.endsWith("org.idempiere.webservice.client"))
+				return;
+				
+			projectFile = new File(it, ".project");
+			if (!projectFile.exists()) return;
+			
+			projectDescription = workspace.loadProjectDescription(new Path(projectFile.getAbsolutePath()));
+			println(projectDescription.getName());
+			project = workspace.getRoot().getProject(projectDescription.getName());
+			if (project.isOpen() == false) {
+				project.create(projectDescription, null);
+				project.open(null);
+			} else {
+				project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			}
+		}
+		
+		bundleContext = bundle.getBundleContext();
+		serviceRef = bundleContext.getServiceReference(ITargetPlatformService.class);
+		service = bundleContext.getService(serviceRef);
+		
+		root = workspace.getRoot();
+		targetFile = root.getFile(new Path("org.idempiere.p2.targetplatform/org.idempiere.p2.targetplatform.target"));
+		handle = service.getTarget(targetFile);
+		target =  handle.getTargetDefinition();		
+		println "** " + LocalDateTime.now().toString() + " Loading " + target.getName() + ", this will take a while ... ";
+		LoadTargetDefinitionJob job = new LoadTargetDefinitionJob(target);
+		job.schedule();
+		try {
+			job.join();
+		} catch (InterruptedException e) {
+			println e.message;
+		}
+		
+		workspace.save(true, null);			
+    </groovy>
+</target>
+</project>
