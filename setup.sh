@@ -142,6 +142,8 @@ if [ ! -d $IDEMPIERE_SOURCE_FOLDER ]; then
 	else
 		git clone https://github.com/idempiere/idempiere.git $IDEMPIERE_SOURCE_FOLDER
 	fi	
+else
+	git -C $IDEMPIERE_SOURCE_FOLDER pull
 fi
 if [ ! -f groovy-all-2.4.17.jar ]; then
 	echo "** Download groovy-all ..."
