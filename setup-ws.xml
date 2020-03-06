@@ -12,11 +12,9 @@
 
 		import org.eclipse.core.resources.*;
 		import org.eclipse.core.runtime.*;
-		import org.eclipse.core.runtime.jobs.Job;
+		import org.eclipse.core.runtime.jobs.*;
 		import org.eclipse.equinox.app.*;
 		import org.osgi.framework.*;
-		import org.eclipse.pde.core.target.ITargetPlatformService;
-		import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
 
 		import static groovy.io.FileType.*
  
@@ -24,7 +22,7 @@
         resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
         workspace = resPlugin.getWorkspace();
         
-        println "** " + LocalDateTime.now().toString() + " Import projects ... ";
+        println "*** " + LocalDateTime.now().toString() + " Import projects into workspace ***";
         
         def groovySrcDir = new File(project.properties."idempiere");
         
@@ -52,24 +50,15 @@
 			}
 		}
 		
-		bundleContext = bundle.getBundleContext();
-		serviceRef = bundleContext.getServiceReference(ITargetPlatformService.class);
-		service = bundleContext.getService(serviceRef);
-		
-		root = workspace.getRoot();
-		targetFile = root.getFile(new Path("org.idempiere.p2.targetplatform/org.idempiere.p2.targetplatform.target"));
-		handle = service.getTarget(targetFile);
-		target =  handle.getTargetDefinition();		
-		println "** " + LocalDateTime.now().toString() + " Loading " + target.getName() + ", this will take a while ... ";
-		LoadTargetDefinitionJob job = new LoadTargetDefinitionJob(target);
-		job.schedule();
-		try {
-			job.join();
-		} catch (InterruptedException e) {
-			println e.message;
-		}
-		
-		workspace.save(true, null);			
+		def estimatedTotal = 0;
+		def workedTotal = 0;
+		def monitor = [beginTask: {String name, Integer totalWork -> println name; estimatedTotal = totalWork;},
+				 done: {-> println "done"}, internalWorked: {Double work -> println "..."},
+				 isCanceled: {-> return false}, setCanceled: {Boolean value -> println "setCanceled: " + value},
+				 setTaskName: {String name -> println "Task: " + name}, subTask: {String name -> println "Sub task: " + name},
+				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal}];
+				 
+		workspace.save(true, monitor as IProgressMonitor);
     </groovy>
 </target>
 </project>

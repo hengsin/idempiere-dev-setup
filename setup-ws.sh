@@ -41,22 +41,28 @@ fi
 cd $ECLIPSE
 DESTINATION=$(pwd)
 
-echo "** Install Tycho Configurator ..."
+echo
+echo "*** Install Tycho Configurator ***"
 ./eclipse -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
 	-repository $TYCHO_REPOSITORY -destination "$DESTINATION" \
 	-installIU org.sonatype.tycho.m2e.feature.feature.group
 
-echo "** Install CDT Headless Build ..."
+echo
+echo "*** Install CDT Headless Build ***"
 ./eclipse -nosplash -data $IDEMPIERE_SOURCE_FOLDER -application org.eclipse.equinox.p2.director \
 	-repository $CDT_REPOSITORY -destination "$DESTINATION" \
 	-installIU org.eclipse.cdt.managedbuilder.core
 
 ./eclipse -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/setup-ws.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 
-echo "** Build workspace ..."
+./eclipse -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/loadtargetplatform.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
+
+echo
+echo "*** Build workspace at $IDEMPIERE_SOURCE_FOLDER ***"
+
 ./eclipse -nosplash \
 	-application org.eclipse.cdt.managedbuilder.core.headlessbuild \
 	-data "$IDEMPIERE_SOURCE_FOLDER" \
-	-build all
-
+	-cleanBuild all
+	
 cd "$DIR"

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" default="default">  
+<taskdef name="groovy"
+         classname="org.codehaus.groovy.ant.Groovy"
+         classpath="groovy-all-2.4.17.jar" />  
+<target name="default">
+    <groovy>
+	<![CDATA[
+		import java.io.*;
+		import java.util.*;
+		import java.util.regex.*;
+		import java.time.LocalDateTime;
+
+		import org.eclipse.core.resources.*;
+		import org.eclipse.core.runtime.*;
+		import org.eclipse.core.runtime.jobs.Job;
+		import org.eclipse.equinox.app.*;
+		import org.osgi.framework.*;
+		import org.eclipse.pde.core.target.ITargetPlatformService;
+		import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
+
+		import static groovy.io.FileType.*
+ 		
+        bundle = org.eclipse.core.runtime.Platform.getBundle("org.eclipse.core.resources");
+        resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
+        workspace = resPlugin.getWorkspace();
+        
+		bundleContext = bundle.getBundleContext();
+		serviceRef = bundleContext.getServiceReference(ITargetPlatformService.class);
+		service = bundleContext.getService(serviceRef);
+		
+		root = workspace.getRoot();
+		targetFile = root.getFile(new Path("org.idempiere.p2.targetplatform/org.idempiere.p2.targetplatform.target"));
+		handle = service.getTarget(targetFile);
+		target =  handle.getTargetDefinition();		
+		println "*** " + LocalDateTime.now().toString() + " Loading " + target.getName() + ", this will take a while ***";
+		LoadTargetDefinitionJob job = new LoadTargetDefinitionJob(target);
+		def estimatedTotal = 0;
+		def workedTotal = 0;
+		def monitor = [beginTask: {String name, Integer totalWork -> println name; estimatedTotal = totalWork;},
+				 done: {-> println "done"}, internalWorked: {Double work -> println "..."},
+				 isCanceled: {-> return false}, setCanceled: {Boolean value -> println "setCanceled: " + value},
+				 setTaskName: {String name -> println "Task: " + name}, subTask: {String name -> println "Sub task: " + name},
+				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal}];
+				
+		try {
+			job.runInWorkspace(monitor as IProgressMonitor);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	]]>
+    </groovy>
+</target>
+</project>
