@@ -136,7 +136,9 @@ do
 done
 
 if [ ! -d $IDEMPIERE_SOURCE_FOLDER ]; then
+	echo
 	echo "*** Clone iDempiere ***"
+	echo
 	if [ "$CLONE_RELEASE_BRANCH" = true ] ; then
 		git clone --branch $RELEASE_BRANCH https://github.com/idempiere/idempiere.git $IDEMPIERE_SOURCE_FOLDER
 	else
@@ -146,21 +148,28 @@ else
 	git -C $IDEMPIERE_SOURCE_FOLDER pull
 fi
 if [ ! -f groovy-all-2.4.17.jar ]; then
+	echo
 	echo "*** Download groovy-all ***"
+	echo
 	wget https://repo1.maven.org/maven2/org/codehaus/groovy/groovy-all/2.4.17/groovy-all-2.4.17.jar
 fi
 if [ ! -f eclipse-jee-2019-12-R-linux-gtk-x86_64.tar.gz ]; then
+	echo
 	echo "*** Download Eclipse ***"
+	echo
     wget http://www.mirrorservice.org/sites/download.eclipse.org/eclipseMirror/technology/epp/downloads/release/2019-12/R/eclipse-jee-2019-12-R-linux-gtk-x86_64.tar.gz
 fi
 if [ ! -d $ECLIPSE ]; then
+	echo
 	echo "*** Extract Eclipse ***"
+	echo
 	tar -xvf eclipse-jee-2019-12-R-linux-gtk-x86_64.tar.gz
 	ECLIPSE=eclipse
 fi
 
 echo
 echo "*** Run Maven Build ***"
+echo
 cd "$IDEMPIERE_SOURCE_FOLDER"
 mvn verify
 

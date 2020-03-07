@@ -37,10 +37,6 @@ else
 fi
 
 cd $ECLIPSE
-./eclipse -nosplash \
-	-application org.eclipse.cdt.managedbuilder.core.headlessbuild \
-	-data "$IDEMPIERE_SOURCE_FOLDER" \
-	-cleanBuild all \
-	-build all
+./eclipse -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/build-ws.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 
 cd "$DIR"

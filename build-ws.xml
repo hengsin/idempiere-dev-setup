@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" default="default">  
+<taskdef name="groovy"
+         classname="org.codehaus.groovy.ant.Groovy"
+         classpath="groovy-all-2.4.17.jar" />  
+<target name="default">
+    <groovy>
+	<![CDATA[
+		import java.io.*;
+		import java.util.*;
+		import java.util.regex.*;
+		import java.time.LocalDateTime;
+
+		import org.eclipse.core.resources.*;
+		import org.eclipse.core.runtime.*;
+		import org.eclipse.core.runtime.jobs.Job;
+		import org.eclipse.equinox.app.*;
+		import org.osgi.framework.*;
+		import org.eclipse.pde.core.target.ITargetPlatformService;
+		import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
+
+        bundle = org.eclipse.core.runtime.Platform.getBundle("org.eclipse.core.resources");
+        resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
+        workspace = resPlugin.getWorkspace();
+        		
+		def estimatedTotal = 0;
+		def workedTotal = 0;
+		def monitor = [beginTask: {String name, Integer totalWork -> println name; estimatedTotal = totalWork;},
+				 done: {-> println "done"}, internalWorked: {Double work -> println "..."},
+				 isCanceled: {-> return false}, setCanceled: {Boolean value -> println "setCanceled: " + value},
+				 setTaskName: {String name -> println "Task: " + name}, subTask: {String name -> println "Sub task: " + name},
+				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal}];
+				
+				
+		root = workspace.getRoot();
+		boolean isAutoBuilding = root.getWorkspace().isAutoBuilding();
+		try {
+			// Turn off workspace auto-build
+			IWorkspaceDescription desc = root.getWorkspace().getDescription();
+			desc.setAutoBuilding(false);
+			root.getWorkspace().setDescription(desc);		
+			//IProject[] allProjects = root.getProjects();
+		
+			println ""
+			println "*** " + LocalDateTime.now().toString() + " Cleaning All Projects ***";
+			println ""
+			root.getWorkspace().build(IncrementalProjectBuilder.CLEAN_BUILD, monitor as IProgressMonitor);
+			
+			estimatedTotal = 0;
+			workedTotal = 0;
+			
+			println ""
+			println "*** " + LocalDateTime.now().toString() + " Building All Projects ***";			
+			println ""
+			root.getWorkspace().build(IncrementalProjectBuilder.FULL_BUILD, monitor as IProgressMonitor);
+		} finally {
+			// Wait for any outstanding jobs to finish
+			while (!Job.getJobManager().isIdle())
+				Thread.sleep(10);
+
+			// Reset workspace auto-build preference
+			IWorkspaceDescription desc = root.getWorkspace().getDescription();
+			desc.setAutoBuilding(isAutoBuilding);
+			root.getWorkspace().setDescription(desc);
+
+			estimatedTotal = 0;
+			workedTotal = 0;
+			root.getWorkspace().save(true, monitor as IProgressMonitor);
+		}	
+			
+	]]>
+    </groovy>
+</target>
+</project>
