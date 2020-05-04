@@ -2,8 +2,8 @@ CREATE_DOCKER_POSTGRES=false
 DOCKER_POSTGRES_NAME=${DOCKER_POSTGRES_NAME:-postgres}
 LOAD_IDEMPIERE_ENV=false
 SETUP_DB=true
-CLONE_RELEASE_BRANCH=false
-RELEASE_BRANCH=release-7.1
+CLONE_BRANCH=false
+SOURCE_URL=https://github.com/idempiere/idempiere.git
 IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
 IDEMPIERE_HOST=${IDEMPIERE_HOST:-0.0.0.0}
 IDEMPIERE_PORT=${IDEMPIERE_PORT:-8080}
@@ -53,8 +53,10 @@ do
     echo -e "\tSet idempiere source folder (default is idempiere)"
     echo -e "  --skip-setup-db"
     echo -e "\tDo not create/sync idempiere db, setup connection properties (idempiere.properties) and setup jetty server (jettyhome)"
-    echo -e "  --stable"
-    echo -e "\tCheckout stable release branch instead of current development branch"
+    echo -e "  --branch=<branch name>"
+    echo -e "\tCheckout branch instead of master"
+    echo -e "  --repository-url=<git repository url>"
+    echo -e "\tSet git repository URL to clone source from (default is $SOURCE_URL)"
     echo -e "  --skip-migration-script"
     echo -e "\tDo not run migration scripts against existing db (default will run)"
     echo -e "  --help"
@@ -121,14 +123,19 @@ do
 	SETUP_DB=false
 	shift
 	;;
-	--stable) 
-	CLONE_RELEASE_BRANCH=true
+	--branch=*) 
+	CLONE_BRANCH=true
+        BRANCH_NAME="${i#*=}"
 	shift
 	;;
 	--skip-migration-script)
     MIGRATE_EXISTING_DATABASE=false
     shift
     ;;
+        --repository-url=*)
+        SOURCE_URL="${i#*=}"
+        shift
+        ;;
 	*)
 	shift
 	;;
@@ -139,10 +146,10 @@ if [ ! -d $IDEMPIERE_SOURCE_FOLDER ]; then
 	echo
 	echo "*** Clone iDempiere ***"
 	echo
-	if [ "$CLONE_RELEASE_BRANCH" = true ] ; then
-		git clone --branch $RELEASE_BRANCH https://github.com/idempiere/idempiere.git $IDEMPIERE_SOURCE_FOLDER
+	if [ "$CLONE_BRANCH" = true ] ; then
+		git clone --branch $BRANCH_NAME $SOURCE_URL $IDEMPIERE_SOURCE_FOLDER
 	else
-		git clone https://github.com/idempiere/idempiere.git $IDEMPIERE_SOURCE_FOLDER
+		git clone $SOURCE_URL $IDEMPIERE_SOURCE_FOLDER
 	fi	
 else
 	git -C $IDEMPIERE_SOURCE_FOLDER pull
