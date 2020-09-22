@@ -56,7 +56,9 @@
 				 done: {-> println "done"}, internalWorked: {Double work -> println "..."},
 				 isCanceled: {-> return false}, setCanceled: {Boolean value -> println "setCanceled: " + value},
 				 setTaskName: {String name -> println "Task: " + name}, subTask: {String name -> println "Sub task: " + name},
-				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal}];
+				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal},
+				 setBlocked: {IStatus reason -> println "Blocked: " + reason},
+				 clearBlocked: {-> println "clear blocked"}];
 				 
 		workspace.save(true, monitor as IProgressMonitor);
     </groovy>

@@ -160,17 +160,17 @@ if [ ! -f groovy-all-2.4.17.jar ]; then
 	echo
 	wget https://repo1.maven.org/maven2/org/codehaus/groovy/groovy-all/2.4.17/groovy-all-2.4.17.jar
 fi
-if [ ! -f eclipse-jee-2020-06-R-linux-gtk-x86_64.tar.gz ]; then
+if [ ! -f eclipse-jee-2020-09-R-linux-gtk-x86_64.tar.gz ]; then
 	echo
 	echo "*** Download Eclipse ***"
 	echo
-    wget http://www.mirrorservice.org/sites/download.eclipse.org/eclipseMirror/technology/epp/downloads/release/2020-06/R/eclipse-jee-2020-06-R-linux-gtk-x86_64.tar.gz
+    wget https://download.eclipse.org/technology/epp/downloads/release/2020-09/R/eclipse-jee-2020-09-R-linux-gtk-x86_64.tar.gz
 fi
 if [ ! -d $ECLIPSE ]; then
 	echo
 	echo "*** Extract Eclipse ***"
 	echo
-	tar -xvf eclipse-jee-2020-06-R-linux-gtk-x86_64.tar.gz
+	tar -xvf eclipse-jee-2020-09-R-linux-gtk-x86_64.tar.gz
 	ECLIPSE=eclipse
 fi
 
