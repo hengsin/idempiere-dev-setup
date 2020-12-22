@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="project" default="default">  
+<path id="groovy.classpath">
+        <fileset dir="${basedir}/groovy-3.0.7/lib/">
+            <include name="*.jar" />
+        </fileset>
+        <fileset dir="${basedir}/groovy-3.0.7/lib/extras-jaxb/">
+            <include name="*.jar" />
+        </fileset>
+</path>
 <taskdef name="groovy"
          classname="org.codehaus.groovy.ant.Groovy"
-         classpath="groovy-all-2.4.17.jar" />  
+         classpathref="groovy.classpath" />  
 <target name="default">
     <groovy>
 		import java.io.*;
@@ -15,19 +23,22 @@
 		import org.eclipse.core.runtime.jobs.*;
 		import org.eclipse.equinox.app.*;
 		import org.osgi.framework.*;
+		import org.eclipse.jdt.core.*;
 
 		import static groovy.io.FileType.*
  
-        bundle = org.eclipse.core.runtime.Platform.getBundle("org.eclipse.core.resources");
-        resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
-        workspace = resPlugin.getWorkspace();
+        	bundle = org.eclipse.core.runtime.Platform.getBundle("org.eclipse.core.resources");
+        	resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
+        	workspace = resPlugin.getWorkspace();
         
-        println "*** " + LocalDateTime.now().toString() + " Import projects into workspace ***";
+       	println ""
+       	println "*** " + LocalDateTime.now().toString() + " Import projects into workspace ***";
+       	println ""
         
-        def groovySrcDir = new File(project.properties."idempiere");
+        	def groovySrcDir = new File(project.properties."idempiere");
         
 		groovySrcDir.eachFile {
-            fullPath = it.getAbsolutePath();			
+            		fullPath = it.getAbsolutePath();			
 			if (fullPath.endsWith("org.idempiere.javadoc") || fullPath.endsWith("ztl") || fullPath.endsWith("selenese") 
 				|| fullPath.endsWith("doc") || fullPath.endsWith("fitnesse") || fullPath.endsWith("migration")
 				|| fullPath.endsWith("event.test") || fullPath.endsWith("org.adempiere.report.jasper.fragment.test") 
@@ -52,14 +63,27 @@
 		
 		def estimatedTotal = 0;
 		def workedTotal = 0;
-		def monitor = [beginTask: {String name, Integer totalWork -> println name; estimatedTotal = totalWork;},
-				 done: {-> println "done"}, internalWorked: {Double work -> println "..."},
-				 isCanceled: {-> return false}, setCanceled: {Boolean value -> println "setCanceled: " + value},
-				 setTaskName: {String name -> println "Task: " + name}, subTask: {String name -> println "Sub task: " + name},
-				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal},
-				 setBlocked: {IStatus reason -> println "Blocked: " + reason},
-				 clearBlocked: {-> println "clear blocked"}];
-				 
+		def monitor = [ blockedReason: null,
+				 beginTask: {String name, Integer totalWork -> println name; estimatedTotal = totalWork;},
+				 setBlocked: {reason -> blockedReason = reason; println "Blocked: " + reason},	
+				 clearBlocked: {-> if (blockedReason != null) {println "Clear Block: " + blockedReason; blockedReason = null;}},
+				 done: {-> println "done"}, 
+				 internalWorked: {Double work -> println "..."},
+				 isCanceled: {-> return false}, 
+				 setCanceled: {Boolean value -> println "setCanceled: " + value},
+				 setTaskName: {String name -> println "Task: " + name}, 
+				 subTask: {String name -> println "Sub task: " + name},
+				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal}];
+		
+		Hashtable options = JavaCore.getOptions();
+		options.put(JavaCore.COMPILER_COMPLIANCE, "11");
+		options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, "11");
+		options.put(JavaCore.COMPILER_SOURCE, "11");
+		JavaCore.setOptions(options);
+		
+		println ""		
+		println "*** " + LocalDateTime.now().toString() + " Saving workspace after import ***";			
+		println ""		 
 		workspace.save(true, monitor as IProgressMonitor);
     </groovy>
 </target>

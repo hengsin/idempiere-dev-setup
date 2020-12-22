@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="project" default="default">  
+<path id="groovy.classpath">
+        <fileset dir="${basedir}/groovy-3.0.7/lib/">
+            <include name="*.jar" />
+        </fileset>
+        <fileset dir="${basedir}/groovy-3.0.7/lib/extras-jaxb/">
+            <include name="*.jar" />
+        </fileset>
+</path>
 <taskdef name="groovy"
          classname="org.codehaus.groovy.ant.Groovy"
-         classpath="groovy-all-2.4.17.jar" />  
+         classpathref="groovy.classpath" /> 
 <target name="default">
     <groovy>
 	<![CDATA[

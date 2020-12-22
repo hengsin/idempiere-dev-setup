@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="project" default="default">  
+<path id="groovy.classpath">
+        <fileset dir="${basedir}/groovy-3.0.7/lib/">
+            <include name="*.jar" />
+        </fileset>
+        <fileset dir="${basedir}/groovy-3.0.7/lib/extras-jaxb/">
+            <include name="*.jar" />
+        </fileset>
+</path>
 <taskdef name="groovy"
          classname="org.codehaus.groovy.ant.Groovy"
-         classpath="groovy-all-2.4.17.jar" />  
+         classpathref="groovy.classpath" />
 <target name="default">
     <groovy>
 	<![CDATA[
@@ -19,16 +27,22 @@
 		import org.eclipse.pde.core.target.ITargetPlatformService;
 		import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
 
-        bundle = org.eclipse.core.runtime.Platform.getBundle("org.eclipse.core.resources");
-        resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
-        workspace = resPlugin.getWorkspace();
+        	bundle = org.eclipse.core.runtime.Platform.getBundle("org.eclipse.core.resources");
+        	resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
+        	workspace = resPlugin.getWorkspace();
         		
 		def estimatedTotal = 0;
 		def workedTotal = 0;
-		def monitor = [beginTask: {String name, Integer totalWork -> println name; estimatedTotal = totalWork;},
-				 done: {-> println "done"}, internalWorked: {Double work -> println "..."},
-				 isCanceled: {-> return false}, setCanceled: {Boolean value -> println "setCanceled: " + value},
-				 setTaskName: {String name -> println "Task: " + name}, subTask: {String name -> println "Sub task: " + name},
+		def monitor = [ blockedReason: null,
+				 beginTask: {String name, Integer totalWork -> println name; estimatedTotal = totalWork;},
+				 setBlocked: {reason -> blockedReason = reason; println "Blocked: " + reason},	
+				 clearBlocked: {-> if (blockedReason != null) {println "Clear Block: " + blockedReason; blockedReason = null;}},
+				 done: {-> println "done"}, 
+				 internalWorked: {Double work -> println "..."},
+				 isCanceled: {-> return false}, 
+				 setCanceled: {Boolean value -> println "setCanceled: " + value},
+				 setTaskName: {String name -> println "Task: " + name}, 
+				 subTask: {String name -> println "Sub task: " + name},
 				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal}];
 				
 				
@@ -39,7 +53,6 @@
 			IWorkspaceDescription desc = root.getWorkspace().getDescription();
 			desc.setAutoBuilding(false);
 			root.getWorkspace().setDescription(desc);		
-			//IProject[] allProjects = root.getProjects();
 		
 			println ""
 			println "*** " + LocalDateTime.now().toString() + " Cleaning All Projects ***";
@@ -48,6 +61,14 @@
 			
 			estimatedTotal = 0;
 			workedTotal = 0;
+			
+			println ""
+			println "*** " + LocalDateTime.now().toString() + " Saving workspace after clean all ***";
+			println ""
+			root.getWorkspace().save(true, monitor as IProgressMonitor);
+
+			estimatedTotal = 0;
+                        workedTotal = 0;
 			
 			println ""
 			println "*** " + LocalDateTime.now().toString() + " Building All Projects ***";			
@@ -65,6 +86,10 @@
 
 			estimatedTotal = 0;
 			workedTotal = 0;
+			
+			println ""
+			println "*** " + LocalDateTime.now().toString() + " Saving workspace after build all ***";
+			println ""
 			root.getWorkspace().save(true, monitor as IProgressMonitor);
 		}	
 			

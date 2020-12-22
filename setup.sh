@@ -142,6 +142,26 @@ do
     esac
 done
 
+if [ -z "$JAVA_HOME" ]; then
+	echo -e "Please set the JAVA_HOME environment variable pointing to a JDK 11 installation folder"
+	echo -e "For e.g, export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+	exit 0
+fi
+
+if [ ! -f $JAVA_HOME/bin/java ]; then
+	echo -e "Please set the JAVA_HOME environment variable pointing to a JDK 11 installation folder"
+	echo -e "For e.g, export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+	exit 0
+fi
+
+JAVA_MAJOR_VERSION=$($JAVA_HOME/bin/java -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p' | cut -d' ' -f1)
+
+if [ "$JAVA_MAJOR_VERSION" != "11" ]; then
+	echo -e "Please set the JAVA_HOME environment variable pointing to a JDK 11 installation folder"
+	echo -e "For e.g, export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+	exit 0
+fi
+
 if [ ! -d $IDEMPIERE_SOURCE_FOLDER ]; then
 	echo
 	echo "*** Clone iDempiere ***"
@@ -154,23 +174,30 @@ if [ ! -d $IDEMPIERE_SOURCE_FOLDER ]; then
 else
 	git -C $IDEMPIERE_SOURCE_FOLDER pull
 fi
-if [ ! -f groovy-all-2.4.17.jar ]; then
+if [ ! -f apache-groovy-binary-3.0.7.zip ]; then
 	echo
-	echo "*** Download groovy-all ***"
+	echo "*** Download groovy ***"
 	echo
-	wget https://repo1.maven.org/maven2/org/codehaus/groovy/groovy-all/2.4.17/groovy-all-2.4.17.jar
+	wget https://dl.bintray.com/groovy/maven/apache-groovy-binary-3.0.7.zip
+	unzip apache-groovy-binary-3.0.7.zip
 fi
-if [ ! -f eclipse-jee-2020-09-R-linux-gtk-x86_64.tar.gz ]; then
+if [ ! -d "groovy-3.0.7" ]; then
+	echo
+	echo "*** Extract Groovy ***"
+	echo
+	unzip apache-groovy-binary-3.0.7.zip
+fi
+if [ ! -f eclipse-jee-2020-12-R-linux-gtk-x86_64.tar.gz ]; then
 	echo
 	echo "*** Download Eclipse ***"
 	echo
-    wget https://download.eclipse.org/technology/epp/downloads/release/2020-09/R/eclipse-jee-2020-09-R-linux-gtk-x86_64.tar.gz
+    wget https://download.eclipse.org/technology/epp/downloads/release/2020-12/R/eclipse-jee-2020-12-R-linux-gtk-x86_64.tar.gz
 fi
 if [ ! -d $ECLIPSE ]; then
 	echo
 	echo "*** Extract Eclipse ***"
 	echo
-	tar -xvf eclipse-jee-2020-09-R-linux-gtk-x86_64.tar.gz
+	tar -xvf eclipse-jee-2020-12-R-linux-gtk-x86_64.tar.gz
 	ECLIPSE=eclipse
 fi
 
