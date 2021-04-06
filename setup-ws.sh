@@ -51,6 +51,6 @@ echo
 
 ./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/loadtargetplatform.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 
-./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/build-ws.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
+##./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/build-ws.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 
 cd "$DIR"
