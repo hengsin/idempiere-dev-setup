@@ -9,6 +9,7 @@
 ## Usage
 * Clone or download to a folder
 * At the folder, run ./setup.sh --help to get help on the options available
+* Launch Eclipse and cancel the auto build of the workspace. Right click on any workspace project, select Maven > Update Project... . At the Update Maven Project dialog, Select All projects and click Ok to generate .classpath for all projects. Auto rebuild of the workspace should happens after the close of the Update Maven Project dialog.
 
 ## What it does
 * Clone idempiere source and run Maven build
@@ -25,6 +26,5 @@
 * Always use the --help option to get help on the options available
 * docker-postgres.sh - scripts to install and run postgres 9.6 docker container
 * eclipse.sh - scripts to start eclipse
-* rebuild-ws.sh - scripts to invoke headless rebuild of idempiere workspace
 * setup-db.sh - scrips to setup connection propertis (idempiere.propertis), jetty server (jettyhome) and import database (if db not exists)/apply migration scripts (if db exists)
-* setup-ws.sh - setup idempiere workspace, set target platform and invoke full build of workspace
+* setup-ws.sh - setup idempiere workspace, set target platform
