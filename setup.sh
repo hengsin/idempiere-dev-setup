@@ -178,7 +178,7 @@ if [ ! -f apache-groovy-binary-3.0.7.zip ]; then
 	echo
 	echo "*** Download groovy ***"
 	echo
-	wget https://dl.bintray.com/groovy/maven/apache-groovy-binary-3.0.7.zip
+	wget https://archive.apache.org/dist/groovy/3.0.7/distribution/apache-groovy-binary-3.0.7.zip
 	unzip apache-groovy-binary-3.0.7.zip
 fi
 if [ ! -d "groovy-3.0.7" ]; then
