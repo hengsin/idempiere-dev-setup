@@ -1,4 +1,4 @@
-TYCHO_REPOSITORY=https://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-tycho/0.9.0/N/0.9.0.201811261502/
+TYCHO_REPOSITORY=https://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-tycho/0.8.1/N/0.8.1.201704211436/
 ECLIPSE=${ECLIPSE:-eclipse}
 IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
 
