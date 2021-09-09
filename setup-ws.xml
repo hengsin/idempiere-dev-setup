@@ -43,8 +43,7 @@
 				|| fullPath.endsWith("doc") || fullPath.endsWith("fitnesse") || fullPath.endsWith("migration")
 				|| fullPath.endsWith("event.test") || fullPath.endsWith("org.adempiere.report.jasper.fragment.test") 
 				|| fullPath.endsWith("utils_dev") || fullPath.endsWith("db")
-				|| fullPath.endsWith("org.adempiere.ui.zk.example")
-				|| fullPath.endsWith("org.idempiere.webservices.client-feature") || fullPath.endsWith("org.idempiere.webservice.client"))
+				|| fullPath.endsWith("org.adempiere.ui.zk.example"))
 				return;
 				
 			projectFile = new File(it, ".project");
