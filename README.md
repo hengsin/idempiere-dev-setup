@@ -13,7 +13,7 @@
 
 ## What it does
 * Clone idempiere source and run Maven build
-* Download and setup Eclipse JEE 2019-12
+* Download and setup Eclipse JEE 2021-06
 * Create new workspace at the cloned idempiere folder and import all projects into the workspace
 * Set target platform and build the workspace
 * setup connection properties (idempiere.properties) and jetty server (jettyhome)
