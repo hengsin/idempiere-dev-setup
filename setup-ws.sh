@@ -1,6 +1,7 @@
-TYCHO_REPOSITORY=https://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-tycho/0.8.1/N/0.8.1.201704211436/
+M2E_TYCHO_REPOSITORY=https://github.com/tesla/m2eclipse-tycho/releases/download/latest/
 ECLIPSE=${ECLIPSE:-eclipse}
 IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
+TARGETPLATFORM_DSL_REPOSITORY=https://download.eclipse.org/cbi/updates/tpd/nightly/N202209040739
 
 for i in "$@"
 do
@@ -41,11 +42,18 @@ cd $ECLIPSE
 DESTINATION=$(pwd)
 
 echo
-echo "*** Install Tycho Configurator ***"
+echo "*** Install M2E Tycho Configurators ***"
 echo
 ./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
-	-repository $TYCHO_REPOSITORY -destination "$DESTINATION" \
+	-repository $M2E_TYCHO_REPOSITORY -destination "$DESTINATION" \
 	-installIU org.sonatype.tycho.m2e.feature.feature.group
+
+echo
+echo "*** Install CBI Target Platform DSL Editor ***"
+echo
+./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
+    -repository $TARGETPLATFORM_DSL_REPOSITORY -destination "$DESTINATION" \
+    -installIU org.eclipse.cbi.targetplatform.feature.feature.group
 
 ./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/setup-ws.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 

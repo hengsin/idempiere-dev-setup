@@ -191,13 +191,13 @@ if [ ! -f eclipse-jee-2022-03-R-linux-gtk-x86_64.tar.gz ]; then
 	echo
 	echo "*** Download Eclipse ***"
 	echo
-    wget https://download.eclipse.org/technology/epp/downloads/release/2022-03/R/eclipse-jee-2022-03-R-linux-gtk-x86_64.tar.gz
+    wget https://download.eclipse.org/technology/epp/downloads/release/2022-09/R/eclipse-jee-2022-09-R-linux-gtk-x86_64.tar.gz
 fi
 if [ ! -d $ECLIPSE ]; then
 	echo
 	echo "*** Extract Eclipse ***"
 	echo
-	tar -xvf eclipse-jee-2022-03-R-linux-gtk-x86_64.tar.gz
+	tar -xvf eclipse-jee-2022-09-R-linux-gtk-x86_64.tar.gz
 	ECLIPSE=eclipse
 fi
 
