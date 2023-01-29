@@ -187,7 +187,7 @@ if [ ! -d "groovy-3.0.7" ]; then
 	echo
 	unzip apache-groovy-binary-3.0.7.zip
 fi
-if [ ! -f eclipse-jee-2022-03-R-linux-gtk-x86_64.tar.gz ]; then
+if [ ! -f eclipse-jee-2022-09-R-linux-gtk-x86_64.tar.gz ]; then
 	echo
 	echo "*** Download Eclipse ***"
 	echo
