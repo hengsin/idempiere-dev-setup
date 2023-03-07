@@ -166,3 +166,4 @@ cd "$CWD"
 cp -r -f $PRODUCT_FOLDER/jettyhome $IDEMPIERE_SOURCE_FOLDER
 cp -f $PRODUCT_FOLDER/*.properties $IDEMPIERE_SOURCE_FOLDER
 cp -f $PRODUCT_FOLDER/hazelcast.xml $IDEMPIERE_SOURCE_FOLDER
+cp $IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64/.idpass  $IDEMPIERE_SOURCE_FOLDER
