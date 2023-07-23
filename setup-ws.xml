@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="project" default="default">  
 <path id="groovy.classpath">
-        <fileset dir="${basedir}/groovy-3.0.7/lib/">
-            <include name="*.jar" />
-        </fileset>
-        <fileset dir="${basedir}/groovy-3.0.7/lib/extras-jaxb/">
+        <fileset dir="${basedir}/groovy-4.0.13/lib/">
             <include name="*.jar" />
         </fileset>
 </path>
@@ -75,9 +72,9 @@
 				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal}];
 		
 		Hashtable options = JavaCore.getOptions();
-		options.put(JavaCore.COMPILER_COMPLIANCE, "11");
-		options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, "11");
-		options.put(JavaCore.COMPILER_SOURCE, "11");
+		options.put(JavaCore.COMPILER_COMPLIANCE, "17");
+		options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, "17");
+		options.put(JavaCore.COMPILER_SOURCE, "17");
 		JavaCore.setOptions(options);
 		
 		println ""		

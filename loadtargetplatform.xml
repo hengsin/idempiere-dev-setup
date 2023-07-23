@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="project" default="default">  
 <path id="groovy.classpath">
-        <fileset dir="${basedir}/groovy-3.0.7/lib/">
-            <include name="*.jar" />
-        </fileset>
-        <fileset dir="${basedir}/groovy-3.0.7/lib/extras-jaxb/">
+        <fileset dir="${basedir}/groovy-4.0.13/lib/">
             <include name="*.jar" />
         </fileset>
 </path>

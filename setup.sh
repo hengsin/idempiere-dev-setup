@@ -142,23 +142,27 @@ do
     esac
 done
 
-if [ -z "$JAVA_HOME" ]; then
-	echo -e "Please set the JAVA_HOME environment variable pointing to a JDK 11 installation folder"
-	echo -e "For e.g, export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
-	exit 0
+if [ ! -f eclipse-jee-2023-06-R-linux-gtk-x86_64.tar.gz ]; then
+        echo
+        echo "*** Download Eclipse ***"
+        echo
+    wget https://download.eclipse.org/technology/epp/downloads/release/2023-06/R/eclipse-jee-2023-06-R-linux-gtk-x86_64.tar.gz
+fi
+if [ ! -d $ECLIPSE ]; then
+        echo
+        echo "*** Extract Eclipse ***"
+        echo
+        tar -xvf eclipse-jee-2023-06-R-linux-gtk-x86_64.tar.gz
+        ECLIPSE=eclipse
 fi
 
-if [ ! -f $JAVA_HOME/bin/java ]; then
-	echo -e "Please set the JAVA_HOME environment variable pointing to a JDK 11 installation folder"
-	echo -e "For e.g, export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
-	exit 0
-fi
+export JAVA_HOME=$(pwd)/eclipse/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_17.0.7.v20230425-1502/jre
 
 JAVA_MAJOR_VERSION=$($JAVA_HOME/bin/java -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p' | cut -d' ' -f1)
 
-if [ "$JAVA_MAJOR_VERSION" != "11" ]; then
-	echo -e "Please set the JAVA_HOME environment variable pointing to a JDK 11 installation folder"
-	echo -e "For e.g, export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+if [ "$JAVA_MAJOR_VERSION" != "17" ]; then
+	echo -e "Please set the JAVA_HOME environment variable pointing to a JDK 17 installation folder"
+	echo -e "For e.g, export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64"
 	exit 0
 fi
 
@@ -174,31 +178,18 @@ if [ ! -d $IDEMPIERE_SOURCE_FOLDER ]; then
 else
 	git -C $IDEMPIERE_SOURCE_FOLDER pull
 fi
-if [ ! -f apache-groovy-binary-3.0.7.zip ]; then
+if [ ! -f apache-groovy-binary-4.0.13.zip ]; then
 	echo
 	echo "*** Download groovy ***"
 	echo
-	wget https://archive.apache.org/dist/groovy/3.0.7/distribution/apache-groovy-binary-3.0.7.zip
-	unzip apache-groovy-binary-3.0.7.zip
+	wget https://archive.apache.org/dist/groovy/4.0.13/distribution/apache-groovy-binary-4.0.13.zip
+	unzip apache-groovy-binary-4.0.13.zip
 fi
-if [ ! -d "groovy-3.0.7" ]; then
+if [ ! -d "groovy-4.0.13" ]; then
 	echo
 	echo "*** Extract Groovy ***"
 	echo
-	unzip apache-groovy-binary-3.0.7.zip
-fi
-if [ ! -f eclipse-jee-2022-06-R-linux-gtk-x86_64.tar.gz ]; then
-	echo
-	echo "*** Download Eclipse ***"
-	echo
-    wget https://download.eclipse.org/technology/epp/downloads/release/2022-06/R/eclipse-jee-2022-06-R-linux-gtk-x86_64.tar.gz
-fi
-if [ ! -d $ECLIPSE ]; then
-	echo
-	echo "*** Extract Eclipse ***"
-	echo
-	tar -xvf eclipse-jee-2022-06-R-linux-gtk-x86_64.tar.gz
-	ECLIPSE=eclipse
+	unzip apache-groovy-binary-4.0.13.zip
 fi
 
 echo

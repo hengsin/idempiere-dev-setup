@@ -1,7 +1,9 @@
-M2E_TYCHO_REPOSITORY=https://github.com/tesla/m2eclipse-tycho/releases/download/latest/
 ECLIPSE=${ECLIPSE:-eclipse}
 IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
-TARGETPLATFORM_DSL_REPOSITORY=https://download.eclipse.org/cbi/updates/tpd/nightly/N202209040739
+XTEXT_RUNTIME_REPOSITORY=https://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.31.0
+TARGETPLATFORM_DSL_REPOSITORY=https://download.eclipse.org/cbi/updates/tpd/nightly/N202305061445
+MWE_REPOSITORY=https://download.eclipse.org/modeling/emft/mwe/updates/releases/2.14.0/
+EMF_REPOSITORY=http://download.eclipse.org/modeling/emf/emf/builds/release/2.34.0
 
 for i in "$@"
 do
@@ -42,11 +44,11 @@ cd $ECLIPSE
 DESTINATION=$(pwd)
 
 echo
-echo "*** Install M2E Tycho Configurators ***"
+echo "*** Install XText Runtime ***"
 echo
 ./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
-	-repository $M2E_TYCHO_REPOSITORY -destination "$DESTINATION" \
-	-installIU org.sonatype.tycho.m2e.feature.feature.group
+    -repository $XTEXT_RUNTIME_REPOSITORY,$MWE_REPOSITORY,$EMF_REPOSITORY -destination "$DESTINATION" \
+    -installIU "org.eclipse.xtext.runtime.feature.group,org.eclipse.xtext.ui.feature.group,org.eclipse.emf.mwe2.runtime,org.eclipse.emf.codegen.ecore.xtext,org.eclipse.emf.ecore.xcore.feature.group" 
 
 echo
 echo "*** Install CBI Target Platform DSL Editor ***"

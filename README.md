@@ -1,10 +1,9 @@
 # Linux script to setup new iDempiere Development environment
 
 ## Pre-requisite
-* JDK11
 * Maven
 * Git
-* Docker (optionl)
+* Docker (optional)
 
 ## Usage
 * Clone or download to a folder
