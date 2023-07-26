@@ -1,4 +1,5 @@
-CREATE_DOCKER_POSTGRES=false
+#!/bin/bash 
+DOCKER_POSTGRES_CREATE=false
 DOCKER_POSTGRES_NAME=${DOCKER_POSTGRES_NAME:-postgres}
 LOAD_IDEMPIERE_ENV=false
 SETUP_DB=true
@@ -17,45 +18,46 @@ DB_SYSTEM=${DB_SYSTEM:-postgres}
 ECLIPSE=${ECLIPSE:-eclipse}
 MIGRATE_EXISTING_DATABASE=${MIGRATE_EXISTING_DATABASE:-true}
 
-for i in "$@"
-do
-    case $i in
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
     --help)
     echo "Usage: setup.sh [OPTION]"
     echo ""
-    echo -e "  --create-docker-postgres"
-    echo -e "\tCreate and run docker postgres 9.6 container"
-    echo -e "  --docker-postgres-name=<postgres container name>"
+    echo -e "  --docker-postgres-create"
+    echo -e "\tCreate and run docker postgres container (default false)"
+    echo -e "  --docker-postgres-name <postgres container name>"
     echo -e "\tSet docker postgres container name (default is postgres)"
-    echo -e "  --db-name=<idempiere database name>"
+    echo -e "  --db-name <idempiere database name>"
     echo -e "\tSet idempiere database name (default is idempiere)"
-    echo -e "  --db-host=<database server host name>"
+    echo -e "  --db-host <database server host name>"
     echo -e "\tSet idempiere database server host name (default is localhost)"
-    echo -e "  --db-port=<idempiere database server port>"
+    echo -e "  --db-port <idempiere database server port>"
     echo -e "\tSet idempiere database server port (default is 5432)"
-    echo -e "  --db-user=<idempiere database user name>"
+    echo -e "  --db-user <idempiere database user name>"
     echo -e "\tSet idempiere database user name (default is adempiere)"
-    echo -e "  --db-pass=<idempiere database user password>"
+    echo -e "  --db-pass <idempiere database user password>"
     echo -e "\tSet idempiere database user password (default is adempiere)"
-    echo -e "  --db-admin-pass=<database server administrator password>"
+    echo -e "  --db-admin-pass <database server administrator password>"
     echo -e "\tSet database administrator password (default is postgres)"
-    echo -e "  --http-host=<host ip>"
+    echo -e "  --http-host <host ip>"
     echo -e "\tSet http address/ip to listen to (default is 0.0.0.0, i.e all available address)"
-    echo -e "  --http-port=<http port>"
+    echo -e "  --http-port <http port>"
     echo -e "\tSet http port to listen to (default is 8080)"
-    echo -e "  --https-port=<http port>"
+    echo -e "  --https-port <http port>"
     echo -e "\tSet https/ssl port to listen to (default is 8443)"
     echo -e "  --load-idempiere-env"
     echo -e "\tLoad environment variable values from idempiereEnv.properties (if exists)"
-    echo -e "  --eclipse=<eclipse ide folder>"
+    echo -e "  --eclipse <eclipse ide folder>"
     echo -e "\tSet eclipse ide folder (default is eclipse)"
-    echo -e "  --source=<idempiere source folder>"
+    echo -e "  --source <idempiere source folder>"
     echo -e "\tSet idempiere source folder (default is idempiere)"
     echo -e "  --skip-setup-db"
     echo -e "\tDo not create/sync idempiere db, setup connection properties (idempiere.properties) and setup jetty server (jettyhome)"
-    echo -e "  --branch=<branch name>"
+    echo -e "  --branch <branch name>"
     echo -e "\tCheckout branch instead of master"
-    echo -e "  --repository-url=<git repository url>"
+    echo -e "  --repository-url <git repository url>"
     echo -e "\tSet git repository URL to clone source from (default is $SOURCE_URL)"
     echo -e "  --skip-migration-script"
     echo -e "\tDo not run migration scripts against existing db (default will run)"
@@ -63,82 +65,101 @@ do
     echo -e "\tdisplay this help and exit"
     exit 0
     ;;
-	--create-docker-postgres) 
-	CREATE_DOCKER_POSTGRES=true
-	shift
-	;;
-	--docker-postgres-name=*)
-    DOCKER_POSTGRES_NAME="${i#*=}"
-    shift # past argument=value
+    --docker-postgres-create) 
+    DOCKER_POSTGRES_CREATE=true
+    shift
     ;;
-	--db-name=*)
-    DB_NAME="${i#*=}"
-    shift # past argument=value
+    --docker-postgres-name)
+    DOCKER_POSTGRES_NAME="$2"
+    shift # past argument
+    shift # past value
     ;;
-    --db-host=*)
-    DB_HOST="${i#*=}"
-    shift # past argument=value
+    --db-name)
+    DB_NAME="$2"
+    shift # past argument
+    shift # past value
     ;;
-    --db-port=*)
-    DB_PORT="${i#*=}"
-    shift # past argument=value
+    --db-host)
+    DB_HOST="$2"
+    shift # past argument
+    shift # past value
     ;;
-    --db-user=*)
-    DB_USER="${i#*=}"
-    shift # past argument=value
+    --db-port)
+    DB_PORT="$2"
+    shift # past argument
+    shift # past value
     ;;
-    --db-pass=*)
-    DB_PASS="${i#*=}"
-    shift # past argument=value
+    --db-user)
+    DB_USER="$2"
+    shift # past argument
+    shift # past value
     ;;
-    --db-admin-pass=*)
-    DB_SYSTEM="${i#*=}"
-    shift # past argument=value
+    --db-pass)
+    DB_PASS="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --db-admin-pass)
+    DB_SYSTEM="$2"
+    shift # past argument
+    shift # past value
     ;;    
-    --http-host=*)
-    IDEMPIERE_HOST="${i#*=}"
-    shift # past argument=value
+    --http-host)
+    IDEMPIERE_HOST="$2"
+    shift # past argument
+    shift # past value
     ;;
-    --http-port=*)
-    IDEMPIERE_PORT="${i#*=}"
-    shift # past argument=value
+    --http-port)
+    IDEMPIERE_PORT="$2"
+    shift # past argument
+    shift # past value
     ;;
-    --https-port=*)
-    IDEMPIERE_SSL_PORT="${i#*=}"
-    shift # past argument=value
+    --https-port)
+    IDEMPIERE_SSL_PORT="$2"
+    shift # past argument
+    shift # past value
     ;;
-	--load-idempiere-env) 
-	LOAD_IDEMPIERE_ENV=true
-	shift
-	;;
-	--eclipse=*)
-    ECLIPSE="${i#*=}"
-    shift # past argument=value
+    --load-idempiere-env) 
+    LOAD_IDEMPIERE_ENV=true
+    shift
     ;;
-    --source=*)
-    IDEMPIERE_SOURCE_FOLDER="${i#*=}"
-    shift # past argument=value
+    --eclipse)
+    ECLIPSE="$2"
+    shift # past argument
+    shift # past value
     ;;
-	--skip-setup-db) 
-	SETUP_DB=false
-	shift
-	;;
-	--branch=*) 
-	CLONE_BRANCH=true
-        BRANCH_NAME="${i#*=}"
-	shift
-	;;
-	--skip-migration-script)
+    --source)
+    IDEMPIERE_SOURCE_FOLDER="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --skip-setup-db) 
+    SETUP_DB=false
+    shift
+    ;;
+    --branch) 
+    CLONE_BRANCH=true
+    BRANCH_NAME="${i#*=}"
+    shift # past argument
+    shift # past value
+    ;;
+    --skip-migration-script)
     MIGRATE_EXISTING_DATABASE=false
     shift
     ;;
-        --repository-url=*)
-        SOURCE_URL="${i#*=}"
-        shift
-        ;;
-	*)
-	shift
-	;;
+    --repository-url)
+    SOURCE_URL="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --*)
+    echo "Unknown option $1"
+    exit 1
+    ;;
+    *)
+    POSITIONAL_ARGS+=("$1") # save positional arg
+    shift
+    ;;
     esac
 done
 
@@ -146,7 +167,7 @@ if [ ! -f eclipse-jee-2023-06-R-linux-gtk-x86_64.tar.gz ]; then
         echo
         echo "*** Download Eclipse ***"
         echo
-    wget https://download.eclipse.org/technology/epp/downloads/release/2023-06/R/eclipse-jee-2023-06-R-linux-gtk-x86_64.tar.gz
+   	 wget https://download.eclipse.org/technology/epp/downloads/release/2023-06/R/eclipse-jee-2023-06-R-linux-gtk-x86_64.tar.gz
 fi
 if [ ! -d $ECLIPSE ]; then
         echo
@@ -199,7 +220,7 @@ cd "$IDEMPIERE_SOURCE_FOLDER"
 mvn verify
 
 cd ..
-./setup-ws.sh --source="$IDEMPIERE_SOURCE_FOLDER"
+./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER"
 
 sleep 1
 
@@ -230,11 +251,13 @@ if [ "$LOAD_IDEMPIERE_ENV" = true ] ; then
 	fi
 fi
 
-if [ "$CREATE_DOCKER_POSTGRES" = true ] ; then
-	./docker-postgres.sh --db-port=$DB_PORT --db-admin-pass=$DB_SYSTEM --docker-postgres-name=$DOCKER_POSTGRES_NAME
+if [ "$DOCKER_POSTGRES_CREATE" = true ] ; then
+	./docker-postgres.sh --db-port $DB_PORT --db-admin-pass $DB_SYSTEM --docker-postgres-name $DOCKER_POSTGRES_NAME
+	sleep 5
+        docker ps -a
 fi
 
 if [ "$SETUP_DB" = true ] ; then
-	./setup-db.sh --source="$IDEMPIERE_SOURCE_FOLDER" --db-name=$DB_NAME --db-host=$DB_HOST --db-port=$DB_PORT --db-user=$DB_USER --db-pass=$DB_PASS \
-		--db-admin-pass=$DB_SYSTEM --http-host=$IDEMPIERE_HOST --http-port=$IDEMPIERE_PORT --https-port=$IDEMPIERE_SSL_PORT --run-migration-script=$MIGRATE_EXISTING_DATABASE
+	./setup-db.sh --source "$IDEMPIERE_SOURCE_FOLDER" --db-name $DB_NAME --db-host $DB_HOST --db-port $DB_PORT --db-user $DB_USER --db-pass $DB_PASS \
+		--db-admin-pass $DB_SYSTEM --http-host $IDEMPIERE_HOST --http-port $IDEMPIERE_PORT --https-port $IDEMPIERE_SSL_PORT --run-migration-script $MIGRATE_EXISTING_DATABASE
 fi

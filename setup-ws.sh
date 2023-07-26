@@ -1,3 +1,4 @@
+#!/bin/bash 
 ECLIPSE=${ECLIPSE:-eclipse}
 IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
 XTEXT_RUNTIME_REPOSITORY=https://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.31.0
@@ -5,31 +6,39 @@ TARGETPLATFORM_DSL_REPOSITORY=https://download.eclipse.org/cbi/updates/tpd/night
 MWE_REPOSITORY=https://download.eclipse.org/modeling/emft/mwe/updates/releases/2.14.0/
 EMF_REPOSITORY=http://download.eclipse.org/modeling/emf/emf/builds/release/2.34.0
 
-for i in "$@"
-do
-    case $i in
-    --source=*)
-    IDEMPIERE_SOURCE_FOLDER="${i#*=}"
-    shift # past argument=value
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+    --source)
+    IDEMPIERE_SOURCE_FOLDER="$2"
+    shift # past argument
+    shift # past value
     ;;
-    --eclipse=*)
-    ECLIPSE="${i#*=}"
-    shift # past argument=value
+    --eclipse)
+    ECLIPSE="$2"
+    shift # past argument
+    shift # past value
     ;;
     --help)
     echo "Usage: setup-ws.sh [OPTION]"
     echo ""
-    echo -e "  --eclipse=<eclipse ide folder>"
+    echo -e "  --eclipse <eclipse ide folder>"
     echo -e "\tSet eclipse ide folder (default is eclipse)"
-    echo -e "  --source=<idempiere source folder>"
+    echo -e "  --source <idempiere source folder>"
     echo -e "\tSet idempiere source folder (default is idempiere)"
     echo -e "  --help"
     echo -e "\tdisplay this help and exit"
     exit 0
     ;;
+    --*)
+    echo "Unknown option $1"
+    exit 1
+    ;;
     *)
-	shift
-	;;
+    POSITIONAL_ARGS+=("$1") # save positional arg
+    shift
+    ;;
     esac
 done
 
