@@ -9,6 +9,8 @@
 ## Usage
 * Clone or download to a folder.
 * If you want to install and run postgresql docker container image, make sure your current login user has the necessary permission to run docker (https://www.baeldung.com/linux/docker-run-without-sudo).
+* Run **autoload bashcompinit**
+* Run **bashcompinit**
 * Run **source completion.bash** to turn on auto completion for bundle shell scripts.
 * Run **./setup.sh --help** to get help on options available.
 
