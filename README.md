@@ -1,7 +1,7 @@
 # Linux scripts to setup new iDempiere Development environment
 
 ## Pre-requisite
-* [Maven](https://maven.apache.org) (>=3.9.x)
+* [Maven](https://maven.apache.org) (>=3.8.6)
 * Git.
 * Docker (optional, for installation of postgresql server).
 * JDK 17 (optional since Eclipse is now bundle with JRE 17).
