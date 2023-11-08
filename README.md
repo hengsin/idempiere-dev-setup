@@ -12,6 +12,12 @@
 * Run **source completion.bash** to turn on auto completion for bundle shell scripts.
 * Run **./setup.sh --help** to get help on options available.
 
+Examples of usage:
+
+    ./setup.sh --branch release-10 --docker-postgres-create --db-admin-pass <your-password>
+    ./setup.sh --skip-setup-db
+
+
 ## What it does
 * Clone idempiere source and run Maven build.
 * Download and setup Eclipse JEE 2023-06.
