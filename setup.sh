@@ -139,7 +139,7 @@ while [[ $# -gt 0 ]]; do
     ;;
     --branch) 
     CLONE_BRANCH=true
-    BRANCH_NAME="${i#*=}"
+    BRANCH_NAME="$2"
     shift # past argument
     shift # past value
     ;;
@@ -198,6 +198,9 @@ if [ ! -d $IDEMPIERE_SOURCE_FOLDER ]; then
 	fi	
 else
 	git -C $IDEMPIERE_SOURCE_FOLDER pull
+        if [ "$CLONE_BRANCH" = true ] ; then
+                git -C $IDEMPIERE_SOURCE_FOLDER checkout $BRANCH_NAME
+        fi
 fi
 if [ ! -f apache-groovy-binary-4.0.13.zip ]; then
 	echo

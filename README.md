@@ -1,7 +1,7 @@
 # Linux scripts to setup new iDempiere Development environment
 
 ## Pre-requisite
-* Maven.
+* [Maven](https://maven.apache.org) (>=3.8.6)
 * Git.
 * Docker (optional, for installation of postgresql server).
 * JDK 17 (optional since Eclipse is now bundle with JRE 17).
@@ -13,6 +13,12 @@
 * Run **bashcompinit**
 * Run **source completion.bash** to turn on auto completion for bundle shell scripts.
 * Run **./setup.sh --help** to get help on options available.
+
+Examples of usage:
+
+    ./setup.sh --branch release-10 --docker-postgres-create --db-admin-pass <your-password>
+    ./setup.sh --skip-setup-db
+
 
 ## What it does
 * Clone idempiere source and run Maven build.
