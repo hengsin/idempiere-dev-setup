@@ -15,6 +15,9 @@ If you don't have the needed mvn version, download and unpack an appropriate ver
     export MVN_HOME=/your/mvn/version
     export PATH=$MVN_HOME/bin:$PATH
 
+**NOTE!**
+
+**If building older releases don't work properly, use the appropriate tagged version (see the git tags of this repository).**
 
 ## Usage
 * Clone or download to a folder.
