@@ -16,7 +16,10 @@
 
 Examples of usage:
 
+    ./setup.sh --branch release-10 --repository-url git@github.com:trifonnt/idempiere.git --docker-postgres-create 
+    
     ./setup.sh --branch release-10 --docker-postgres-create --db-admin-pass <your-password>
+
     ./setup.sh --skip-setup-db
 
 
