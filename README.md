@@ -6,6 +6,19 @@
 * Docker (optional, for installation of postgresql server).
 * JDK 17 (optional since Eclipse is now bundle with JRE 17).
 
+Before running the setup.sh script, make sure you have a compatible Maven version
+
+    mvn -version
+
+If you don't have the needed mvn version, download and unpack an appropriate version and set your environment
+
+    export MVN_HOME=/your/mvn/version
+    export PATH=$MVN_HOME/bin:$PATH
+
+**NOTE!**
+
+**If building older releases don't work properly, use the appropriate tagged version (see the git tags of this repository).**
+
 ## Usage
 * Clone or download to a folder.
 * If you want to install and run postgresql docker container image, make sure your current login user has the necessary permission to run docker (https://www.baeldung.com/linux/docker-run-without-sudo).
