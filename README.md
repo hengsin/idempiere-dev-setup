@@ -9,12 +9,22 @@
 ## Usage
 * Clone or download to a folder.
 * If you want to install and run postgresql docker container image, make sure your current login user has the necessary permission to run docker (https://www.baeldung.com/linux/docker-run-without-sudo).
+
+### If you are using zsh instead of bash shell, run the following 2 command to enable bash completion.
+```
+* Run **autoload bashcompinit**
+* Run **bashcompinit**
+```
+
 * Run **source completion.bash** to turn on auto completion for bundle shell scripts.
 * Run **./setup.sh --help** to get help on options available.
 
 Examples of usage:
 
+    ./setup.sh --branch release-10 --repository-url git@github.com:idempiere/idempiere.git --docker-postgres-create 
+    
     ./setup.sh --branch release-10 --docker-postgres-create --db-admin-pass <your-password>
+
     ./setup.sh --skip-setup-db
 
 
