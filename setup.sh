@@ -163,21 +163,21 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ ! -f eclipse-jee-2023-06-R-linux-gtk-x86_64.tar.gz ]; then
+if [ ! -f eclipse-jee-2023-12-R-linux-gtk-x86_64.tar.gz ]; then
         echo
         echo "*** Download Eclipse ***"
         echo
-   	 wget https://download.eclipse.org/technology/epp/downloads/release/2023-06/R/eclipse-jee-2023-06-R-linux-gtk-x86_64.tar.gz
+   	 wget https://download.eclipse.org/technology/epp/downloads/release/2023-12/R/eclipse-jee-2023-12-R-linux-gtk-x86_64.tar.gz
 fi
 if [ ! -d $ECLIPSE ]; then
         echo
         echo "*** Extract Eclipse ***"
         echo
-        tar -xvf eclipse-jee-2023-06-R-linux-gtk-x86_64.tar.gz
+        tar --warning=no-unknown-keyword -xvf eclipse-jee-2023-12-R-linux-gtk-x86_64.tar.gz
         ECLIPSE=eclipse
 fi
 
-export JAVA_HOME=$(pwd)/eclipse/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_17.0.7.v20230425-1502/jre
+export JAVA_HOME=$(pwd)/eclipse/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_17.0.9.v20231028-0858/jre
 
 JAVA_MAJOR_VERSION=$($JAVA_HOME/bin/java -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p' | cut -d' ' -f1)
 
