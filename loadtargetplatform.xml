@@ -35,7 +35,7 @@
 		service = bundleContext.getService(serviceRef);
 		
 		root = workspace.getRoot();
-		targetFile = root.getFile(new Path("org.idempiere.p2.targetplatform/org.idempiere.p2.targetplatform.target"));
+		targetFile = root.getFile(new Path("org.idempiere.p2.targetplatform/org.idempiere.p2.targetplatform.mirror.target"));
 		handle = service.getTarget(targetFile);
 		target =  handle.getTargetDefinition();		
 		println "*** " + LocalDateTime.now().toString() + " Loading " + target.getName() + ", this will take a while ***";

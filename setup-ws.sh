@@ -1,10 +1,10 @@
 #!/bin/bash 
 ECLIPSE=${ECLIPSE:-eclipse}
 IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
-XTEXT_RUNTIME_REPOSITORY=https://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.31.0
-TARGETPLATFORM_DSL_REPOSITORY=https://download.eclipse.org/cbi/updates/tpd/nightly/N202305061445
-MWE_REPOSITORY=https://download.eclipse.org/modeling/emft/mwe/updates/releases/2.14.0/
-EMF_REPOSITORY=http://download.eclipse.org/modeling/emf/emf/builds/release/2.34.0
+XTEXT_RUNTIME_REPOSITORY=https://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.35.0
+TARGETPLATFORM_DSL_REPOSITORY=https://download.eclipse.org/cbi/updates/tpd/nightly/N202403260932
+MWE_REPOSITORY=https://download.eclipse.org/modeling/emft/mwe/updates/releases/2.18.0/
+EMF_REPOSITORY=https://download.eclipse.org/modeling/emf/emf/builds/release/2.38.0
 
 POSITIONAL_ARGS=()
 
