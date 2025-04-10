@@ -16,6 +16,7 @@ DB_USER=${DB_USER:-adempiere}
 DB_PASS=${DB_PASS:-adempiere}
 DB_SYSTEM=${DB_SYSTEM:-postgres}
 ECLIPSE=${ECLIPSE:-eclipse}
+INSTALL_COPILOT=false
 MIGRATE_EXISTING_DATABASE=${MIGRATE_EXISTING_DATABASE:-true}
 
 POSITIONAL_ARGS=()
@@ -61,6 +62,8 @@ while [[ $# -gt 0 ]]; do
     echo -e "\tSet git repository URL to clone source from (default is $SOURCE_URL)"
     echo -e "  --skip-migration-script"
     echo -e "\tDo not run migration scripts against existing db (default will run)"
+    echo -e "  --install-copilot"
+    echo -e "\tAutomaticaly install copilot plugin (default is N)"
     echo -e "  --help"
     echo -e "\tdisplay this help and exit"
     exit 0
@@ -127,6 +130,10 @@ while [[ $# -gt 0 ]]; do
     ECLIPSE="$2"
     shift # past argument
     shift # past value
+    ;;
+    --install-copilot) 
+    INSTALL_COPILOT=true
+    shift
     ;;
     --source)
     IDEMPIERE_SOURCE_FOLDER="$2"
@@ -223,7 +230,12 @@ cd "$IDEMPIERE_SOURCE_FOLDER"
 mvn verify
 
 cd ..
-./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER"
+
+if [ "$INSTALL_COPILOT" = true ]; then
+  ./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER" --install-copilot
+else
+  ./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER"
+fi
 
 sleep 1
 

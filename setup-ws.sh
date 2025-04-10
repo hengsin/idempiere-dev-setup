@@ -1,10 +1,14 @@
 #!/bin/bash 
 ECLIPSE=${ECLIPSE:-eclipse}
+INSTALL_COPILOT=false
 IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
 XTEXT_RUNTIME_REPOSITORY=https://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.35.0
 TARGETPLATFORM_DSL_REPOSITORY=https://download.eclipse.org/cbi/updates/tpd/nightly/N202403260932
 MWE_REPOSITORY=https://download.eclipse.org/modeling/emft/mwe/updates/releases/2.18.0/
 EMF_REPOSITORY=https://download.eclipse.org/modeling/emf/emf/builds/release/2.38.0
+LSP4_REPOSITORY="https://download.eclipse.org/lsp4e/releases/latest/"
+COPILOT_REPOSITORY="https://azuredownloads-g3ahgwb5b8bkbxhd.b01.azurefd.net/github-copilot/"
+
 
 POSITIONAL_ARGS=()
 
@@ -20,6 +24,10 @@ while [[ $# -gt 0 ]]; do
     shift # past argument
     shift # past value
     ;;
+    --install-copilot) 
+    INSTALL_COPILOT=true
+    shift
+    ;;
     --help)
     echo "Usage: setup-ws.sh [OPTION]"
     echo ""
@@ -27,6 +35,8 @@ while [[ $# -gt 0 ]]; do
     echo -e "\tSet eclipse ide folder (default is eclipse)"
     echo -e "  --source <idempiere source folder>"
     echo -e "\tSet idempiere source folder (default is idempiere)"
+    echo -e "  --install-copilot"
+    echo -e "\tAutomaticaly install copilot plugin (default is N)"
     echo -e "  --help"
     echo -e "\tdisplay this help and exit"
     exit 0
@@ -69,5 +79,11 @@ echo
 ./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/setup-ws.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 
 ./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/loadtargetplatform.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
+
+if [ "$INSTALL_COPILOT" = true ]; then
+    ./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
+    -repository $LSP4_REPOSITORY,$COPILOT_REPOSITORY -destination "$DESTINATION" \
+    -installIU "com.microsoft.copilot.eclipse.feature.feature.group" 
+fi
 
 cd "$DIR"
