@@ -10,8 +10,9 @@ KEY_STORE_C=${KEY_STORE_C:-US}
 IDEMPIERE_HOST=${IDEMPIERE_HOST:-0.0.0.0}
 IDEMPIERE_PORT=${IDEMPIERE_PORT:-8080}
 IDEMPIERE_SSL_PORT=${IDEMPIERE_SSL_PORT:-8443}
+DB_TYPE=${DB_TYPE:-postgresql}
 DB_HOST=${DB_HOST:-localhost}
-DB_PORT=${DB_PORT:-5432}
+DB_PORT=${DB_PORT:-0}
 DB_NAME=${DB_NAME:-idempiere}
 DB_USER=${DB_USER:-adempiere}
 DB_PASS=${DB_PASS:-adempiere}
@@ -22,6 +23,8 @@ MAIL_PASS=${MAIL_PASS:-info}
 MAIL_ADMIN=${MAIL_ADMIN:-info@idempiere}
 MIGRATE_EXISTING_DATABASE=${MIGRATE_EXISTING_DATABASE:-true}
 IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
+ORACLE_DOCKER_CONTAINER=${ORACLE_DOCKER_CONTAINER:-}
+ORACLE_DOCKER_HOME=${ORACLE_DOCKER_HOME:-/opt/oracle}
 
 if [[ -n "$DB_PASS_FILE" ]]; then
     echo "DB_PASS_FILE set as $DB_PASS_FILE..."
@@ -47,6 +50,11 @@ POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+    --db-type)
+    DB_TYPE="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --db-name)
     DB_NAME="$2"
     shift # past argument
@@ -74,6 +82,16 @@ while [[ $# -gt 0 ]]; do
     ;;
     --db-admin-pass)
     DB_SYSTEM="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --oracle-docker-container)
+    ORACLE_DOCKER_CONTAINER="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --oracle-docker-home)
+    ORACLE_DOCKER_HOME="$2"
     shift # past argument
     shift # past value
     ;;
@@ -105,17 +123,23 @@ while [[ $# -gt 0 ]]; do
     --help)
     echo "Usage: setup-db.sh [OPTION]"
     echo ""
+    echo -e "  --db-type <postgresql or oracle>"
+    echo -e "\tSelect database type (default is postgresql)"
     echo -e "  --db-name <idempiere database name>"
     echo -e "\tSet idempiere database name (default is idempiere)"
     echo -e "  --db-host <database server host name>"
     echo -e "\tSet idempiere database server host name (default is localhost)"
     echo -e "  --db-port <idempiere database server port>"
-    echo -e "\tSet idempiere database server port (default is 5432)"
+    echo -e "\tSet idempiere database server port (default is 5432 for postgresql, 1521 for oracle)"
     echo -e "  --db-user <idempiere database user name>"
     echo -e "\tSet idempiere database user name (default is adempiere)"
     echo -e "  --db-pass <idempiere database user password>"
     echo -e "\tSet idempiere database user password (default is adempiere)"
     echo -e "  --db-admin-pass <database server administrator password>"
+    echo -e "\tSet oracle docker container name (default is none)"
+    echo -e "  --oracle-docker-container <oracle docker container name>"
+    echo -e "\tSet oracle docker home folder (default is /opt/oracle)"
+    echo -e "  --oracle-docker-home <oracle docker home folder path>"
     echo -e "\tSet database administrator password (default is postgres)"
     echo -e "  --http-host <host ip>"
     echo -e "\tSet http address/ip to listen to (default is 0.0.0.0, i.e all available address)"
@@ -142,14 +166,12 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-export PGPASSWORD=$DB_SYSTEM 
-if ! psql -h $DB_HOST -p $DB_PORT -U postgres -d postgres -c "\q" > /dev/null 2>&1 ; then
-	export PGPASSWORD=$DB_PASS
-	if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "\q" > /dev/null 2>&1 ; then
-		echo "Bad postgres admin password and couldn't connect to idempiere database $DB_NAME using the provided credential.";
-		echo "Please fix the db credential parameters and rerun the setup script or set up the connection properties file manually after completion of the script."
-		exit 0;
-	fi
+if [ "$DB_PORT" == "0" ]; then
+  if [ "$DB_TYPE" == "postgresql" ]; then
+    DB_PORT="5432"
+  else
+    DB_PORT="1521"
+  fi
 fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -159,35 +181,99 @@ else
 	IDEMPIERE_SOURCE_FOLDER="$DIR/$IDEMPIERE_SOURCE_FOLDER"	
 fi
 
+echo $IDEMPIERE_SOURCE_FOLDER
+
 CWD=$(pwd)
 PRODUCT_FOLDER=$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64
-cd $PRODUCT_FOLDER
-echo -e "$JAVA_HOME\n$JAVA_OPTIONS\n$IDEMPIERE_HOME\n$KEY_STORE_PASS\n$KEY_STORE_ON\n$KEY_STORE_OU\n$KEY_STORE_O\n$KEY_STORE_L\n$KEY_STORE_S\n$KEY_STORE_C\n$IDEMPIERE_HOST\n$IDEMPIERE_PORT\n$IDEMPIERE_SSL_PORT\nN\n2\n$DB_HOST\n$DB_PORT\n$DB_NAME\n$DB_USER\n$DB_PASS\n$DB_SYSTEM\n$MAIL_HOST\n$MAIL_USER\n$MAIL_PASS\n$MAIL_ADMIN\nY\n" | ./console-setup-alt.sh
 
-export PGPASSWORD=$DB_PASS
-if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "\q" > /dev/null 2>&1 ; then
-	cd utils
-	echo "Database '$DB_NAME' not found, starting import..."
-	echo -e "\n" | ./RUN_ImportIdempiere.sh
-	echo "Synchronizing database..."
-	./RUN_SyncDB.sh
-	cd ..
-	echo "Signing database..."
-	./sign-database-build.sh
+if [ "$DB_TYPE" == "postgresql" ]; then
+  export PGPASSWORD=$DB_SYSTEM 
+  if ! psql -h $DB_HOST -p $DB_PORT -U postgres -d postgres -c "\q" > /dev/null 2>&1 ; then
+    export PGPASSWORD=$DB_PASS
+    if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "\q" > /dev/null 2>&1 ; then
+      echo "Bad postgres admin password and couldn't connect to idempiere database $DB_NAME using the provided credential.";
+      echo "Please fix the db credential parameters and rerun the setup script or set up the connection properties file manually after completion of the script."
+      exit 0;
+    fi
+  fi
 else
-	echo "Database '$DB_NAME' is found..."
-	if [ "$MIGRATE_EXISTING_DATABASE" = true ]; then
-		cd utils
-		echo "MIGRATE_EXISTING_DATABASE is equal to 'true'. Synchronizing database..."
-		./RUN_SyncDB.sh
-		cd ..
-		echo "Signing database..."
-		./sign-database-build.sh
-	else
-		echo "MIGRATE_EXISTING_DATABASE is equal to 'false'. Skipping..."
-	fi
+  if ! sqlplus -S -L system/"$DB_SYSTEM"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$PRODUCT_FOLDER"/utils/oracle/Test.sql  > /dev/null 2>&1 ; then
+    if ! sqlplus -S -L "$DB_USER"/"$DB_PASS"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$PRODUCT_FOLDER"/utils/oracle/Test.sql  > /dev/null 2>&1 ; then
+      echo "Bad postgres admin password and couldn't connect to idempiere database $DB_NAME using the provided credential.";
+      echo "Please fix the db credential parameters and rerun the setup script or set up the connection properties file manually after completion of the script."
+      exit 0;
+    fi
+  fi
 fi
-    
+
+cd $PRODUCT_FOLDER
+
+if [ "$DB_TYPE" == "postgresql" ]; then
+  if [ ! -f jettyhome/etc/keystore ]; then
+    echo -e "$JAVA_HOME\n$JAVA_OPTIONS\n$IDEMPIERE_HOME\n$KEY_STORE_PASS\n$KEY_STORE_ON\n$KEY_STORE_OU\n$KEY_STORE_O\n$KEY_STORE_L\n$KEY_STORE_S\n$KEY_STORE_C\n$IDEMPIERE_HOST\n$IDEMPIERE_PORT\n$IDEMPIERE_SSL_PORT\nN\n2\n$DB_HOST\n$DB_PORT\n$DB_NAME\n$DB_USER\n$DB_PASS\n$DB_SYSTEM\n$MAIL_HOST\n$MAIL_USER\n$MAIL_PASS\n$MAIL_ADMIN\nY\n" | ./console-setup-alt.sh
+  else
+    echo -e "$JAVA_HOME\n$JAVA_OPTIONS\n$IDEMPIERE_HOME\n$KEY_STORE_PASS\n$IDEMPIERE_HOST\n$IDEMPIERE_PORT\n$IDEMPIERE_SSL_PORT\nN\n2\n$DB_HOST\n$DB_PORT\n$DB_NAME\n$DB_USER\n$DB_PASS\n$DB_SYSTEM\n$MAIL_HOST\n$MAIL_USER\n$MAIL_PASS\n$MAIL_ADMIN\nY\n" | ./console-setup-alt.sh
+  fi
+else
+  if [ ! -f jettyhome/etc/keystore ]; then
+    echo -e "$JAVA_HOME\n$JAVA_OPTIONS\n$IDEMPIERE_HOME\n$KEY_STORE_PASS\n$KEY_STORE_ON\n$KEY_STORE_OU\n$KEY_STORE_O\n$KEY_STORE_L\n$KEY_STORE_S\n$KEY_STORE_C\n$IDEMPIERE_HOST\n$IDEMPIERE_PORT\n$IDEMPIERE_SSL_PORT\nN\n1\n$DB_HOST\n$DB_PORT\n$DB_NAME\n$DB_USER\n$DB_PASS\n$DB_SYSTEM\n$MAIL_HOST\n$MAIL_USER\n$MAIL_PASS\n$MAIL_ADMIN\nY\n" | ./console-setup-alt.sh    
+  else
+    echo -e "$JAVA_HOME\n$JAVA_OPTIONS\n$IDEMPIERE_HOME\n$KEY_STORE_PASS\n$IDEMPIERE_HOST\n$IDEMPIERE_PORT\n$IDEMPIERE_SSL_PORT\nN\n1\n$DB_HOST\n$DB_PORT\n$DB_NAME\n$DB_USER\n$DB_PASS\n$DB_SYSTEM\n$MAIL_HOST\n$MAIL_USER\n$MAIL_PASS\n$MAIL_ADMIN\nY\n" | ./console-setup-alt.sh
+  fi
+fi
+
+if [ "$DB_TYPE" == "postgresql" ]; then
+  export PGPASSWORD=$DB_PASS
+  if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "\q" > /dev/null 2>&1 ; then
+    cd utils
+    echo "Database '$DB_NAME' not found, starting import..."
+    echo -e "\n" | ./RUN_ImportIdempiere.sh
+    echo "Synchronizing database..."
+    ./RUN_SyncDB.sh
+    cd ..
+    echo "Signing database..."
+    ./sign-database-build.sh
+  else
+    echo "Database '$DB_NAME' is found..."
+    if [ "$MIGRATE_EXISTING_DATABASE" = true ]; then
+      cd utils
+      echo "MIGRATE_EXISTING_DATABASE is equal to 'true'. Synchronizing database..."
+      ./RUN_SyncDB.sh
+      cd ..
+      echo "Signing database..."
+      ./sign-database-build.sh
+    else
+      echo "MIGRATE_EXISTING_DATABASE is equal to 'false'. Skipping..."
+    fi
+  fi
+else
+  if ! sqlplus -S -L "$DB_USER"/"$DB_PASS"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$PRODUCT_FOLDER"/utils/oracle/Test.sql  > /dev/null 2>&1 ; then
+    echo $ORACLE_DOCKER_CONTAINER
+    cd utils
+    echo "Database '$DB_USER' not found, starting import..."
+    export ORACLE_DOCKER_CONTAINER
+    export ORACLE_DOCKER_HOME
+    echo -e "\n" | ./RUN_ImportIdempiere.sh
+    echo "Synchronizing database..."
+    ./RUN_SyncDB.sh
+    cd ..
+    echo "Signing database..."
+    ./sign-database-build.sh
+  else
+    echo "Database '$DB_USER' is found..."
+    if [ "$MIGRATE_EXISTING_DATABASE" = true ]; then
+      cd utils
+      echo "MIGRATE_EXISTING_DATABASE is equal to 'true'. Synchronizing database..."
+      ./RUN_SyncDB.sh
+      cd ..
+      echo "Signing database..."
+      ./sign-database-build.sh
+    else
+      echo "MIGRATE_EXISTING_DATABASE is equal to 'false'. Skipping..."
+    fi
+  fi
+fi
+  
 cd "$CWD"
 cp -r -f $PRODUCT_FOLDER/jettyhome $IDEMPIERE_SOURCE_FOLDER
 cp -f $PRODUCT_FOLDER/*.properties $IDEMPIERE_SOURCE_FOLDER

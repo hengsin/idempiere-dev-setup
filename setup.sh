@@ -2,6 +2,7 @@
 DOCKER_POSTGRES_CREATE=false
 DOCKER_POSTGRES_NAME=${DOCKER_POSTGRES_NAME:-postgres}
 LOAD_IDEMPIERE_ENV=false
+SETUP_WS=true
 SETUP_DB=true
 CLONE_BRANCH=false
 SOURCE_URL=https://github.com/idempiere/idempiere.git
@@ -54,6 +55,8 @@ while [[ $# -gt 0 ]]; do
     echo -e "\tSet eclipse ide folder (default is eclipse)"
     echo -e "  --source <idempiere source folder>"
     echo -e "\tSet idempiere source folder (default is idempiere)"
+    echo -e "  --skip-setup-ws"
+    echo -e "\tDo not install Eclipse and setup Eclipse Workspace"
     echo -e "  --skip-setup-db"
     echo -e "\tDo not create/sync idempiere db, setup connection properties (idempiere.properties) and setup jetty server (jettyhome)"
     echo -e "  --branch <branch name>"
@@ -139,6 +142,10 @@ while [[ $# -gt 0 ]]; do
     IDEMPIERE_SOURCE_FOLDER="$2"
     shift # past argument
     shift # past value
+    ;;
+    --skip-setup-ws) 
+    SETUP_WS=false
+    shift
     ;;
     --skip-setup-db) 
     SETUP_DB=false
@@ -231,25 +238,29 @@ mvn verify
 
 cd ..
 
-if [ "$INSTALL_COPILOT" = true ]; then
-  ./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER" --install-copilot
-else
-  ./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER"
+if [ "$SETUP_WS" = true ]; then
+  if [ "$INSTALL_COPILOT" = true ]; then
+    ./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER" --install-copilot
+  else
+    ./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER"
+  fi
 fi
 
 sleep 1
 
-IDE_PREFERENCE=$ECLIPSE/configuration/.settings/org.eclipse.ui.ide.prefs
-if [ ! -d $ECLIPSE/configuration/.settings ]; then
-	mkdir $ECLIPSE/configuration/.settings
-fi
-if [ ! -f $ECLIPSE/configuration/.settings/org.eclipse.ui.ide.prefs ]; then
-	echo "MAX_RECENT_WORKSPACES=10" >> $IDE_PREFERENCE
-	echo "RECENT_WORKSPACES=$PWD/idempiere"  >> $IDE_PREFERENCE
-	echo "RECENT_WORKSPACES_PROTOCOL=3" >> $IDE_PREFERENCE
-	echo "SHOW_RECENT_WORKSPACES=false" >> $IDE_PREFERENCE
-	echo "SHOW_WORKSPACE_SELECTION_DIALOG=true" >> $IDE_PREFERENCE
-	echo "eclipse.preferences.version=1" >> $IDE_PREFERENCE
+if [ "$SETUP_WS" = true ]; then
+  IDE_PREFERENCE=$ECLIPSE/configuration/.settings/org.eclipse.ui.ide.prefs
+  if [ ! -d $ECLIPSE/configuration/.settings ]; then
+    mkdir $ECLIPSE/configuration/.settings
+  fi
+  if [ ! -f $ECLIPSE/configuration/.settings/org.eclipse.ui.ide.prefs ]; then
+    echo "MAX_RECENT_WORKSPACES=10" >> $IDE_PREFERENCE
+    echo "RECENT_WORKSPACES=$PWD/idempiere"  >> $IDE_PREFERENCE
+    echo "RECENT_WORKSPACES_PROTOCOL=3" >> $IDE_PREFERENCE
+    echo "SHOW_RECENT_WORKSPACES=false" >> $IDE_PREFERENCE
+    echo "SHOW_WORKSPACE_SELECTION_DIALOG=true" >> $IDE_PREFERENCE
+    echo "eclipse.preferences.version=1" >> $IDE_PREFERENCE
+  fi
 fi
 
 if [ "$LOAD_IDEMPIERE_ENV" = true ] ; then
