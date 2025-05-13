@@ -181,6 +181,17 @@ else
 	IDEMPIERE_SOURCE_FOLDER="$DIR/$IDEMPIERE_SOURCE_FOLDER"	
 fi
 
+if ! [[ -d "$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2" ]]; then
+  if [[ -d "$DIR/org.idempiere.p2" ]]; then
+    IDEMPIERE_SOURCE_FOLDER="$DIR"
+  fi
+fi
+
+if ! [[ -d "$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2" ]]; then
+  echo "Invalid IDEMPIERE_SOURCE_FOLDER: $IDEMPIERE_SOURCE_FOLDER"
+  exit 1
+fi
+
 echo $IDEMPIERE_SOURCE_FOLDER
 
 CWD=$(pwd)
