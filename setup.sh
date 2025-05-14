@@ -16,6 +16,9 @@ DB_PORT=${DB_PORT:-5432}
 DB_USER=${DB_USER:-adempiere}
 DB_PASS=${DB_PASS:-adempiere}
 DB_SYSTEM=${DB_SYSTEM:-postgres}
+DB_TYPE=${DB_TYPE:-postgresql}
+ORACLE_DOCKER_CONTAINER=${ORACLE_DOCKER_CONTAINER:-}
+ORACLE_DOCKER_HOME=${ORACLE_DOCKER_HOME:-/opt/oracle}
 ECLIPSE=${ECLIPSE:-eclipse}
 INSTALL_COPILOT=false
 MIGRATE_EXISTING_DATABASE=${MIGRATE_EXISTING_DATABASE:-true}
@@ -31,18 +34,24 @@ while [[ $# -gt 0 ]]; do
     echo -e "\tCreate and run docker postgres container (default false)"
     echo -e "  --docker-postgres-name <postgres container name>"
     echo -e "\tSet docker postgres container name (default is postgres)"
+    echo -e "  --db-type <postgresql or oracle>"
+    echo -e "\tSelect database type (default is postgresql)"
     echo -e "  --db-name <idempiere database name>"
     echo -e "\tSet idempiere database name (default is idempiere)"
     echo -e "  --db-host <database server host name>"
     echo -e "\tSet idempiere database server host name (default is localhost)"
     echo -e "  --db-port <idempiere database server port>"
-    echo -e "\tSet idempiere database server port (default is 5432)"
+    echo -e "\tSet idempiere database server port (default is 5432 for postgresql, 1521 for oracle)"
     echo -e "  --db-user <idempiere database user name>"
     echo -e "\tSet idempiere database user name (default is adempiere)"
     echo -e "  --db-pass <idempiere database user password>"
     echo -e "\tSet idempiere database user password (default is adempiere)"
     echo -e "  --db-admin-pass <database server administrator password>"
-    echo -e "\tSet database administrator password (default is postgres)"
+    echo -e "\tSet database administrator password (for postgresql, password for postgres user. for oracle, password for system user)"    
+    echo -e "  --oracle-docker-container <oracle docker container name>"
+    echo -e "\tSet oracle docker container name (default is none)"
+    echo -e "  --oracle-docker-home <oracle docker home folder path>"
+    echo -e "\tSet oracle docker home folder (default is /opt/oracle)"
     echo -e "  --http-host <host ip>"
     echo -e "\tSet http address/ip to listen to (default is 0.0.0.0, i.e all available address)"
     echo -e "  --http-port <http port>"
@@ -80,6 +89,11 @@ while [[ $# -gt 0 ]]; do
     shift # past argument
     shift # past value
     ;;
+    --db-type)
+    DB_TYPE="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --db-name)
     DB_NAME="$2"
     shift # past argument
@@ -110,6 +124,16 @@ while [[ $# -gt 0 ]]; do
     shift # past argument
     shift # past value
     ;;    
+    --oracle-docker-container)
+    ORACLE_DOCKER_CONTAINER="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --oracle-docker-home)
+    ORACLE_DOCKER_HOME="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --http-host)
     IDEMPIERE_HOST="$2"
     shift # past argument
@@ -285,5 +309,6 @@ fi
 
 if [ "$SETUP_DB" = true ] ; then
 	./setup-db.sh --source "$IDEMPIERE_SOURCE_FOLDER" --db-name $DB_NAME --db-host $DB_HOST --db-port $DB_PORT --db-user $DB_USER --db-pass $DB_PASS \
-		--db-admin-pass $DB_SYSTEM --http-host $IDEMPIERE_HOST --http-port $IDEMPIERE_PORT --https-port $IDEMPIERE_SSL_PORT --run-migration-script $MIGRATE_EXISTING_DATABASE
+		--db-admin-pass $DB_SYSTEM --http-host $IDEMPIERE_HOST --http-port $IDEMPIERE_PORT --https-port $IDEMPIERE_SSL_PORT --run-migration-script $MIGRATE_EXISTING_DATABASE \
+    --db-type $DB_TYPE --oracle-docker-container $ORACLE_DOCKER_CONTAINER --oracle-docker-home $ORACLE_DOCKER_HOME
 fi
