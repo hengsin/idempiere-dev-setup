@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iDempiere Setup Script Frontend</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+        .form-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Tailwind shadow-md */
+            margin-bottom: 2rem;
+        }
+        .form-section legend {
+            font-size: 1.25rem; /* Tailwind text-xl */
+            font-weight: 600; /* Tailwind font-semibold */
+            color: #1f2937; /* Tailwind gray-800 */
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500; /* Tailwind font-medium */
+            color: #374151; /* Tailwind gray-700 */
+        }
+        input[type="text"], input[type="password"], input[type="number"], input[type="url"], select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db; /* Tailwind gray-300 */
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            margin-bottom: 1rem !important;
+            transition: border-color 0.2s;
+            background-color: white; /* Ensure select background is white */
+        }
+        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, input[type="url"]:focus, select:focus {
+            border-color: #2563eb; /* Tailwind blue-600 */
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); /* Tailwind ring-2 ring-blue-500 ring-opacity-40 */
+        }
+        input[type="checkbox"] {
+            margin-right: 0.5rem;
+            accent-color: #2563eb; /* Tailwind blue-600 */
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: #374151; /* Tailwind gray-700 */
+        }
+        button {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            font-weight: 500; /* Tailwind font-medium */
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1d4ed8; /* Tailwind blue-700 */
+            color: white;
+        }
+        #generatedCommand {
+            width: 100%;
+            min-height: 100px;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db; /* Tailwind gray-300 */
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 1rem;
+        }
+        .info-text {
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* gray-500 */
+            margin-bottom: 1rem;
+            margin-top: -0.5rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-3xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800">iDempiere Setup Script Configurator</h1>
+            <p class="text-gray-600 mt-2">Configure options for the <code>setup.sh</code> script and generate the command.</p>
+        </header>
+
+        <form id="setupForm">
+            <fieldset class="form-section">
+                <legend>Docker Postgres Configuration</legend>
+                <div class="checkbox-label">
+                    <input type="checkbox" id="docker_postgres_create">
+                    <label for="docker_postgres_create">Create and run Docker Postgres container</label>
+                </div>
+                <p class="info-text">Corresponds to <code>--docker-postgres-create</code>. Script default: false.</p>
+
+                <label for="docker_postgres_name">Docker Postgres Container Name:</label>
+                <input type="text" id="docker_postgres_name" value="postgres">
+                <p class="info-text">Corresponds to <code>--docker-postgres-name</code>. Script default: postgres.</p>
+            </fieldset>
+
+            <fieldset class="form-section">
+                <legend>Database Configuration</legend>
+                <label for="db_type">Database Type:</label>
+                <select name="db_type" id="db_type">
+                   <option value="postgresql" selected>PostgreSQL</option>
+                   <option value="oracle">Oracle</option>
+                </select>
+                <p class="info-text">Corresponds to <code>--db-type</code> (e.g., postgresql, oracle). Script default: postgresql.</p>
+
+                <label for="db_name">Database Name:</label>
+                <input type="text" id="db_name" value="idempiere">
+                <p class="info-text">Corresponds to <code>--db-name</code>. Script default: idempiere.</p>
+
+                <label for="db_host">Database Host:</label>
+                <input type="text" id="db_host" value="localhost">
+                <p class="info-text">Corresponds to <code>--db-host</code>. Script default: localhost.</p>
+
+                <label for="db_port">Database Port:</label>
+                <input type="number" id="db_port" value="5432">
+                <p class="info-text">Corresponds to <code>--db-port</code>. Script default: 5432 (for postgresql), 1521 (for oracle).</p>
+
+                <label for="db_user">Database User:</label>
+                <input type="text" id="db_user" value="adempiere">
+                <p class="info-text">Corresponds to <code>--db-user</code>. Script default: adempiere.</p>
+
+                <label for="db_pass">Database Password:</label>
+                <input type="password" id="db_pass" value="adempiere">
+                <p class="info-text">Corresponds to <code>--db-pass</code>. Script default: adempiere.</p>
+
+                <label for="db_system_pass">Database System Admin Password (Postgresql, for 'postgres' user. Oracle, for 'system' user.):</label>
+                <input type="password" id="db_system_pass" value="postgres">
+                <p class="info-text">Corresponds to <code>--db-admin-pass</code>. Script default: postgres.</p>
+
+                <label for="oracle_docker_container">Oracle Docker Container Name (Optional):</label>
+                <input type="text" id="oracle_docker_container" placeholder="e.g., idempiere-oracle-db">
+                <p class="info-text">Corresponds to <code>--oracle-docker-container</code>. Optional. Script default: (empty).</p>
+
+                <label for="oracle_docker_home">Oracle Docker Home (Optional):</label>
+                <input type="text" id="oracle_docker_home" value="/opt/oracle">
+                <p class="info-text">Corresponds to <code>--oracle-docker-home</code>. Script default: /opt/oracle.</p>
+            </fieldset>
+
+            <fieldset class="form-section">
+                <legend>iDempiere Server Configuration</legend>
+                <label for="idempiere_host">HTTP Host (Listen Address):</label>
+                <input type="text" id="idempiere_host" value="0.0.0.0">
+                <p class="info-text">Corresponds to <code>--http-host</code>. Script default: 0.0.0.0.</p>
+
+                <label for="idempiere_port">HTTP Port:</label>
+                <input type="number" id="idempiere_port" value="8080">
+                <p class="info-text">Corresponds to <code>--http-port</code>. Script default: 8080.</p>
+
+                <label for="idempiere_ssl_port">HTTPS/SSL Port:</label>
+                <input type="number" id="idempiere_ssl_port" value="8443">
+                <p class="info-text">Corresponds to <code>--https-port</code>. Script default: 8443.</p>
+            </fieldset>
+
+            <fieldset class="form-section">
+                <legend>Source Code & Environment</legend>
+                <label for="idempiere_source_folder">iDempiere Source Folder:</label>
+                <input type="text" id="idempiere_source_folder" value="idempiere">
+                <p class="info-text">Corresponds to <code>--source</code>. Script default: idempiere.</p>
+
+                <label for="source_url">Git Repository URL:</label>
+                <input type="url" id="source_url" value="https://github.com/idempiere/idempiere.git">
+                <p class="info-text">Corresponds to <code>--repository-url</code>. Script default: https://github.com/idempiere/idempiere.git.</p>
+
+                <div class="checkbox-label">
+                    <input type="checkbox" id="clone_branch_enable">
+                    <label for="clone_branch_enable">Checkout a specific branch</label>
+                </div>
+                <p class="info-text">Enables using <code>--branch</code>.</p>
+
+                <label for="branch_name">Branch Name (if specific branch is enabled):</label>
+                <input type="text" id="branch_name" placeholder="e.g., release-10" disabled>
+                <p class="info-text">Corresponds to <code>--branch &lt;branch_name&gt;</code>.</p>
+
+                <label for="eclipse_folder">Eclipse IDE Folder:</label>
+                <input type="text" id="eclipse_folder" value="eclipse">
+                <p class="info-text">Corresponds to <code>--eclipse</code>. Script default: eclipse.</p>
+            </fieldset>
+
+            <fieldset class="form-section">
+                <legend>Setup Options</legend>
+                <div class="checkbox-label">
+                    <input type="checkbox" id="load_idempiere_env">
+                    <label for="load_idempiere_env">Load environment from idempiereEnv.properties</label>
+                </div>
+                <p class="info-text">Corresponds to <code>--load-idempiere-env</code>. Script default: false.</p>
+
+                <div class="checkbox-label">
+                    <input type="checkbox" id="setup_ws" checked>
+                    <label for="setup_ws">Setup Eclipse Workspace</label>
+                </div>
+                <p class="info-text">Script default: true. Uncheck for <code>--skip-setup-ws</code>.</p>
+
+                <div class="checkbox-label">
+                    <input type="checkbox" id="setup_db" checked>
+                    <label for="setup_db">Setup Database & Jetty</label>
+                </div>
+                <p class="info-text">Script default: true. Uncheck for <code>--skip-setup-db</code>.</p>
+
+                <div class="checkbox-label">
+                    <input type="checkbox" id="install_copilot">
+                    <label for="install_copilot">Install GitHub Copilot plugin in Eclipse</label>
+                </div>
+                <p class="info-text">Corresponds to <code>--install-copilot</code>. Script default: false.</p>
+
+                <div class="checkbox-label">
+                    <input type="checkbox" id="migrate_existing_database" checked>
+                    <label for="migrate_existing_database">Run migration scripts against existing DB</label>
+                </div>
+                <p class="info-text">Script default: true. Uncheck for <code>--skip-migration-script</code>.</p>
+            </fieldset>
+
+            <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                <button type="button" id="generateCmdBtn" class="w-full sm:w-auto">Generate Command</button>
+                <button type="button" id="copyCmdBtn" class="w-full sm:w-auto secondary-button" disabled>Copy Command</button>
+            </div>
+
+            <div class="mt-6">
+                <label for="generatedCommand" class="font-semibold">Generated Command:</label>
+                <textarea id="generatedCommand" readonly rows="5" placeholder="Generated command will appear here..."></textarea>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Default values for UI, aligned with the updated setup.sh script's defaults
+        const defaults = {
+            docker_postgres_name: "postgres",
+            db_type: "postgresql",
+            db_host: "localhost",
+            pg_db_name: "idempiere",
+            pg_db_port: "5432",
+            pg_db_user: "adempiere",
+            pg_db_pass: "adempiere",
+            pg_db_system_pass: "postgres", 
+            oracle_docker_container: "",
+            oracle_docker_home: "/opt/oracle",
+            oracle_db_name: "freepdb1",
+            oracle_db_port: "1521",
+            oracle_db_user: "idempiere",
+            oracle_db_pass: "idempiere",
+            oracle_db_system_pass: "oracle",
+            idempiere_host: "0.0.0.0",
+            idempiere_port: "8080",
+            idempiere_ssl_port: "8443",
+            idempiere_source_folder: "idempiere",
+            source_url: "https://github.com/idempiere/idempiere.git",
+            eclipse_folder: "eclipse",
+            // Boolean flags and their script defaults
+            docker_postgres_create: false,
+            load_idempiere_env: false,    
+            setup_ws: true,               
+            setup_db: true,               
+            install_copilot: false,       
+            migrate_existing_database: true // True means "run migration", so --skip-migration-script is NOT added by default
+        };
+
+        const branchEnableCheckbox = document.getElementById('clone_branch_enable');
+        const branchNameInput = document.getElementById('branch_name');
+        const generateCmdBtn = document.getElementById('generateCmdBtn');
+        const copyCmdBtn = document.getElementById('copyCmdBtn');
+        const generatedCommandTextarea = document.getElementById('generatedCommand');
+
+        branchEnableCheckbox.addEventListener('change', function() {
+            branchNameInput.disabled = !this.checked;
+            if (!this.checked) {
+                branchNameInput.value = ''; 
+            }
+        });
+        
+        function quoteArg(arg) {
+            // Basic quoting for shell arguments. Handles spaces and some special characters.
+            // More robust quoting might be needed for complex inputs.
+            if (/\s|"|'|\$|`|\\|&|;|\||<|>|\(|\)|#/.test(arg)) {
+                 // Escape existing double quotes and backslashes, then wrap in double quotes.
+                return `"${arg.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+            }
+            return arg;
+        }
+
+        // Variable to hold the command string, defined globally for the helper function
+        let command = ''; 
+
+        // Helper to add flags with values to the command string
+        function addFlagWithValue(flag, id, scriptDefaultValue) {
+            const element = document.getElementById(id);
+            const currentValue = element.value.trim();
+
+            // Do not add the flag if the current value is empty AND the script's default is also conceptually empty or optional.
+            // For parameters where an empty string is a valid non-default value, this might need adjustment,
+            // but for this script, empty usually means "don't specify" or "use internal default".
+            if (currentValue === "" && (scriptDefaultValue === "" || scriptDefaultValue === undefined || scriptDefaultValue === null) ) {
+                // If current is empty and default is empty, don't add flag (unless it's explicitly in alwaysIncludeIds and has a value)
+                // This handles optional fields like oracle_docker_container correctly.
+                if (currentValue === "" && scriptDefaultValue === "" && id === 'oracle_docker_container') return;
+            }
+
+
+            // If currentValue is not empty OR it is different from the scriptDefaultValue
+            if (currentValue !== scriptDefaultValue) {
+                 if (currentValue !== "") { // Only add if there's actually a value
+                    command += ` ${flag} ${quoteArg(currentValue)}`;
+                 } else if (currentValue === "" && scriptDefaultValue !== "") {
+                    // If user cleared a field that had a non-empty default, pass it as an empty quoted string
+                    // This might be needed if the script expects an empty arg vs no arg.
+                    // For this script, it's generally better to just not pass the flag if the value is cleared.
+                    // So, we'll stick to only adding if currentValue is not effectively empty.
+                    // This case (currentValue === "" && scriptDefaultValue !== "") is tricky.
+                    // For now, if user clears a field, we don't add the flag.
+                 }
+            } else { // currentValue === scriptDefaultValue (and not empty, based on typical usage)
+                const alwaysIncludeIds = [ // These are included even if value matches default (if not empty)
+                    'docker_postgres_name', 'db_type', 'db_name', 'db_host', 'db_port', 'db_user', 
+                    // 'db_pass' - passwords might be sensitive to always include if default
+                    'db_system_pass', 'idempiere_host', 'idempiere_port', 'idempiere_ssl_port', 
+                    'idempiere_source_folder', 'source_url', 'eclipse_folder', 'oracle_docker_home' // oracle_docker_home has a non-empty default
+                ];
+                // Only add if it's in alwaysIncludeIds AND the value is not empty.
+                // This ensures that if a default is an empty string, it's not spuriously added.
+                if (alwaysIncludeIds.includes(id) && currentValue !== "") {
+                    command += ` ${flag} ${quoteArg(currentValue)}`;
+                }
+            }
+        }
+
+
+        generateCmdBtn.addEventListener('click', function() {
+            command = './setup.sh'; // Reset command string for each generation
+
+            // Docker Postgres
+            if (document.getElementById('docker_postgres_create').checked) { // Default is false
+                command += ' --docker-postgres-create';
+            }
+            addFlagWithValue('--docker-postgres-name', 'docker_postgres_name', defaults.docker_postgres_name);
+
+            // Database
+            addFlagWithValue('--db-type', 'db_type', defaults.db_type);
+            addFlagWithValue('--db-name', 'db_name', defaults.db_name);
+            addFlagWithValue('--db-host', 'db_host', defaults.db_host);
+            addFlagWithValue('--db-port', 'db_port', defaults.db_port);
+            addFlagWithValue('--db-user', 'db_user', defaults.db_user);
+            addFlagWithValue('--db-pass', 'db_pass', defaults.db_pass); // Be mindful of always including default passwords
+            addFlagWithValue('--db-admin-pass', 'db_system_pass', defaults.db_system_pass);
+            addFlagWithValue('--oracle-docker-container', 'oracle_docker_container', defaults.oracle_docker_container);
+            addFlagWithValue('--oracle-docker-home', 'oracle_docker_home', defaults.oracle_docker_home);
+
+
+            // iDempiere Server
+            addFlagWithValue('--http-host', 'idempiere_host', defaults.idempiere_host);
+            addFlagWithValue('--http-port', 'idempiere_port', defaults.idempiere_port);
+            addFlagWithValue('--https-port', 'idempiere_ssl_port', defaults.idempiere_ssl_port);
+
+            // Source Code & Environment
+            addFlagWithValue('--source', 'idempiere_source_folder', defaults.idempiere_source_folder);
+            addFlagWithValue('--repository-url', 'source_url', defaults.source_url);
+            
+            if (branchEnableCheckbox.checked) {
+                const branchName = branchNameInput.value.trim();
+                if (branchName) {
+                    command += ` --branch ${quoteArg(branchName)}`;
+                }
+            }
+            addFlagWithValue('--eclipse', 'eclipse_folder', defaults.eclipse_folder);
+
+            // Setup Options (Booleans - logic based on script defaults)
+            if (document.getElementById('load_idempiere_env').checked) { // Script default: false
+                command += ' --load-idempiere-env';
+            }
+            if (!document.getElementById('setup_ws').checked) { // Script default: true
+                command += ' --skip-setup-ws';
+            }
+            if (!document.getElementById('setup_db').checked) { // Script default: true
+                command += ' --skip-setup-db';
+            }
+            if (document.getElementById('install_copilot').checked) { // Script default: false
+                command += ' --install-copilot';
+            }
+            if (!document.getElementById('migrate_existing_database').checked) { // Script default: true (MIGRATE_EXISTING_DATABASE=true)
+                command += ' --skip-migration-script';
+            }
+            
+            generatedCommandTextarea.value = command;
+            copyCmdBtn.disabled = false;
+        });
+
+        copyCmdBtn.addEventListener('click', function() {
+            if (generatedCommandTextarea.value) {
+                navigator.clipboard.writeText(generatedCommandTextarea.value)
+                    .then(() => {
+                        const originalText = copyCmdBtn.textContent;
+                        copyCmdBtn.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyCmdBtn.textContent = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy command: ', err);
+                        generatedCommandTextarea.select();
+                        try {
+                            document.execCommand('copy');
+                             const originalText = copyCmdBtn.textContent;
+                            copyCmdBtn.textContent = 'Copied (fallback)!';
+                            setTimeout(() => {
+                                copyCmdBtn.textContent = originalText;
+                            }, 2000);
+                        } catch (e) {
+                            console.error('Fallback copy failed',e);
+                            // Notify user of copy failure if all methods fail
+                            alert("Failed to copy command. Please copy manually.");
+                        }
+                    });
+            }
+        });
+
+        // Get references to the select and input elements
+        const dbTypeSelect = document.getElementById('db_type');
+        const dbHostInput = document.getElementById('db_host');
+        const dbPortInput = document.getElementById('db_port');
+        const dbNameInput = document.getElementById('db_name');
+        const dbUserInput = document.getElementById('db_user');
+        const dbPassInput = document.getElementById('db_pass');
+        const dbAdminPassInput = document.getElementById('db_system_pass');
+        const dockerPostgresCreate = document.getElementById('docker_postgres_create');
+        const dockerPostgresInput = document.getElementById('docker_postgres_name');
+        const oracleDockerContainerInput = document.getElementById('oracle_docker_container');
+        const oracleDockerHomeInput = document.getElementById('oracle_docker_home');
+            
+        function updateDockerPostgresInput() {
+          if (dockerPostgresCreate.checked) {
+              dockerPostgresInput.value = defaults.docker_postgres_name;
+              dockerPostgresInput.disabled = false;
+          } else {
+              dockerPostgresInput.value = "";
+              dockerPostgresInput.disabled = true;
+          }
+        }
+        
+        function updateDBInputDisabled(disabled) {
+          dbNameInput.disabled = disabled;
+          dbHostInput.disabled = disabled;
+          dbPortInput.disabled = disabled;
+          dbUserInput.disabled = disabled;
+          dbPassInput.disabled = disabled;
+          dbAdminPassInput.disabled = disabled;
+          dockerPostgresInput.disabled = disabled;
+          dockerPostgresCreate.disabled = disabled;
+          oracleDockerContainerInput.disabled = disabled;
+          oracleDockerHomeInput.disabled = disabled;
+          document.getElementById('migrate_existing_database').disabled = disabled;
+        }
+        
+        function onDBTypeChanged() {
+          // Get the selected value
+          const selectedDbType = dbTypeSelect.value;
+
+          // Update the db_port based on the selected database type
+          if (dbTypeSelect.disabled) {
+            dbPortInput.value = "";
+            dbNameInput.value = "";
+            dbUserInput.value = "";
+            dbPassInput.value = "";
+            dbAdminPassInput.value = "";
+            dockerPostgresInput.value = "";
+            dockerPostgresCreate.checked = false;
+            oracleDockerHomeInput.value = "";
+            updateDBInputDisabled(true);
+          } else if (selectedDbType === 'postgresql') {
+            dbPortInput.value = defaults.pg_db_port;
+            dbNameInput.value = defaults.pg_db_name;
+            dbUserInput.value = defaults.pg_db_user;
+            dbPassInput.value = defaults.pg_db_pass;
+            dbAdminPassInput.value = defaults.pg_db_system_pass;
+            dockerPostgresCreate.checked = false;
+            dockerPostgresInput.value = "";
+            oracleDockerContainerInput.value = "";
+            oracleDockerHomeInput.value = "";
+            updateDBInputDisabled(false);
+            oracleDockerContainerInput.disabled = true;
+            oracleDockerHomeInput.disabled = true;
+          } else if (selectedDbType === 'oracle') {
+            dbPortInput.value = defaults.oracle_db_port;
+            dbNameInput.value = defaults.oracle_db_name;
+            dbUserInput.value = defaults.oracle_db_user;
+            dbPassInput.value = defaults.oracle_db_pass;
+            dbAdminPassInput.value = defaults.oracle_db_system_pass;
+            dockerPostgresCreate.checked = false;
+            dockerPostgresInput.value = "";
+            oracleDockerHomeInput.value = defaults.oracle_docker_home;
+            updateDBInputDisabled(false);
+            dockerPostgresCreate.disabled = true;
+          }
+          updateDockerPostgresInput();
+        }
+
+        // Add an event listener to the select element
+        dbTypeSelect.addEventListener('change', function() {
+          onDBTypeChanged();
+        });
+                
+        dockerPostgresCreate.addEventListener('click', function() {
+            updateDockerPostgresInput();
+        });
+
+        function onSetupWorkspaceChanged() {
+          const setup = document.getElementById('setup_ws').checked;
+          document.getElementById('eclipse_folder').value = setup ? defaults.eclipse_folder : "";
+          document.getElementById('eclipse_folder').disabled = !setup;
+          document.getElementById('install_copilot').disabled = !setup;
+          document.getElementById('install_copilot').checked = setup ? defaults.install_copilot : false; 
+        }
+        
+        document.getElementById('setup_ws').addEventListener('click', function() {
+          onSetupWorkspaceChanged();
+        });
+        
+        function updateJettyInputDisabled(disabled) {
+          document.getElementById('idempiere_host').disabled = disabled;
+          document.getElementById('idempiere_port').disabled = disabled;
+          document.getElementById('idempiere_ssl_port').disabled = disabled;            
+          document.getElementById('idempiere_host').value = disabled ? '' : defaults.idempiere_host;
+          document.getElementById('idempiere_port').value = disabled ? '' : defaults.idempiere_port;
+          document.getElementById('idempiere_ssl_port').value = disabled ? '' : defaults.idempiere_ssl_port;
+        }
+        
+        function onSetupDatabaseChanged() {
+          if (!document.getElementById('setup_db').checked) {
+            dbTypeSelect.value = "";
+            dbTypeSelect.disabled = true;
+            onDBTypeChanged();                                    
+            updateJettyInputDisabled(true);
+          } else {
+            dbTypeSelect.value = defaults.db_type;
+            dbTypeSelect.disabled = false;
+            onDBTypeChanged();            
+            updateJettyInputDisabled(false);
+            document.getElementById('migrate_existing_database').checked = defaults.migrate_existing_database;            
+          }
+        }
+        
+        document.getElementById('setup_db').addEventListener('click', function() {
+          onSetupDatabaseChanged();
+        });
+        
+        // Initialize form field values from the 'defaults' object on page load
+        document.addEventListener('DOMContentLoaded', () => {            
+            document.getElementById('idempiere_source_folder').value = defaults.idempiere_source_folder;
+            document.getElementById('source_url').value = defaults.source_url;
+            
+            document.getElementById('load_idempiere_env').checked = defaults.load_idempiere_env;
+            document.getElementById('setup_ws').checked = defaults.setup_ws;
+            document.getElementById('setup_db').checked = defaults.setup_db;
+                        
+            onSetupDatabaseChanged();
+            onSetupWorkspaceChanged();
+        });
+
+    </script>
+</body>
+</html>
