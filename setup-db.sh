@@ -197,6 +197,16 @@ echo $IDEMPIERE_SOURCE_FOLDER
 CWD=$(pwd)
 PRODUCT_FOLDER=$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64
 
+TEST_SQL_SCRIPT="$PRODUCT_FOLDER"/utils/oracle/Test.sql
+DOCKER_EXEC=
+if [[ -n "$ORACLE_DOCKER_CONTAINER" ]]; then
+  DOCKER_EXEC="docker exec -i $ORACLE_DOCKER_CONTAINER"
+  $DOCKER_EXEC mkdir -p "$ORACLE_DOCKER_HOME"/idempiere/script
+  docker cp "$TEST_SQL_SCRIPT" "$ORACLE_DOCKER_CONTAINER:$ORACLE_DOCKER_HOME"/idempiere/script
+  docker exec -u 0 "$ORACLE_DOCKER_CONTAINER" chown -R oracle:dba "$ORACLE_DOCKER_HOME"/idempiere
+  TEST_SQL_SCRIPT="$ORACLE_DOCKER_HOME"/idempiere/script/Test.sql
+fi
+
 if [ "$DB_TYPE" == "postgresql" ]; then
   export PGPASSWORD=$DB_SYSTEM 
   if ! psql -h $DB_HOST -p $DB_PORT -U postgres -d postgres -c "\q" > /dev/null 2>&1 ; then
@@ -208,9 +218,9 @@ if [ "$DB_TYPE" == "postgresql" ]; then
     fi
   fi
 else
-  if ! sqlplus -S -L system/"$DB_SYSTEM"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$PRODUCT_FOLDER"/utils/oracle/Test.sql  > /dev/null 2>&1 ; then
-    if ! sqlplus -S -L "$DB_USER"/"$DB_PASS"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$PRODUCT_FOLDER"/utils/oracle/Test.sql  > /dev/null 2>&1 ; then
-      echo "Bad postgres admin password and couldn't connect to idempiere database $DB_NAME using the provided credential.";
+  if ! $DOCKER_EXEC sqlplus -S -L system/"$DB_SYSTEM"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$TEST_SQL_SCRIPT"  > /dev/null 2>&1 ; then
+    if ! $DOCKER_EXEC sqlplus -S -L "$DB_USER"/"$DB_PASS"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$TEST_SQL_SCRIPT"  > /dev/null 2>&1 ; then
+      echo "Bad oracle admin password and couldn't connect to idempiere database $DB_NAME using the provided credential.";
       echo "Please fix the db credential parameters and rerun the setup script or set up the connection properties file manually after completion of the script."
       exit 0;
     fi
@@ -258,7 +268,7 @@ if [ "$DB_TYPE" == "postgresql" ]; then
     fi
   fi
 else
-  if ! sqlplus -S -L "$DB_USER"/"$DB_PASS"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$PRODUCT_FOLDER"/utils/oracle/Test.sql  > /dev/null 2>&1 ; then
+  if ! $DOCKER_EXEC sqlplus -S -L "$DB_USER"/"$DB_PASS"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$TEST_SQL_SCRIPT"  > /dev/null 2>&1 ; then
     echo $ORACLE_DOCKER_CONTAINER
     cd utils
     echo "Database '$DB_USER' not found, starting import..."
