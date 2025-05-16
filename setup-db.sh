@@ -26,29 +26,29 @@ IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
 ORACLE_DOCKER_CONTAINER=${ORACLE_DOCKER_CONTAINER:-}
 ORACLE_DOCKER_HOME=${ORACLE_DOCKER_HOME:-/opt/oracle}
 
-if [[ -n "$DB_PASS_FILE" ]]; then
+if [ -n "$DB_PASS_FILE" ]; then
     echo "DB_PASS_FILE set as $DB_PASS_FILE..."
     DB_PASS=$(cat $DB_PASS_FILE)
 fi
 
-if [[ -n "$DB_ADMIN_PASS_FILE" ]]; then
+if [ -n "$DB_ADMIN_PASS_FILE" ]; then
     echo "DB_ADMIN_PASS_FILE set as $DB_ADMIN_PASS_FILE..."
     DB_SYSTEM=$(cat $DB_ADMIN_PASS_FILE)
 fi
 
-if [[ -n "$MAIL_PASS_FILE" ]]; then
+if [ -n "$MAIL_PASS_FILE" ]; then
     echo "MAIL_PASS_FILE set as $MAIL_PASS_FILE..."
     MAIL_PASS=$(cat $MAIL_PASS_FILE)
 fi
 
-if [[ -n "$KEY_STORE_PASS_FILE" ]]; then
+if [ -n "$KEY_STORE_PASS_FILE" ]; then
     echo "KEY_STORE_PASS_FILE set as $KEY_STORE_PASS_FILE..."
     KEY_STORE_PASS=$(cat $KEY_STORE_PASS_FILE)
 fi
 
 POSITIONAL_ARGS=()
 
-while [[ $# -gt 0 ]]; do
+while [ $# -gt 0 ]; do
     case $1 in
     --db-type)
     DB_TYPE="$2"
@@ -175,19 +175,19 @@ if [ "$DB_PORT" == "0" ]; then
 fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-if [[ $IDEMPIERE_SOURCE_FOLDER == "/*" ]]; then
+if [ $IDEMPIERE_SOURCE_FOLDER == "/*" ]; then
 	:
 else
 	IDEMPIERE_SOURCE_FOLDER="$DIR/$IDEMPIERE_SOURCE_FOLDER"	
 fi
 
-if ! [[ -d "$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2" ]]; then
-  if [[ -d "$DIR/org.idempiere.p2" ]]; then
+if ! [ -d "$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2" ]; then
+  if [ -d "$DIR/org.idempiere.p2" ]; then
     IDEMPIERE_SOURCE_FOLDER="$DIR"
   fi
 fi
 
-if ! [[ -d "$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2" ]]; then
+if ! [ -d "$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2" ]; then
   echo "Invalid IDEMPIERE_SOURCE_FOLDER: $IDEMPIERE_SOURCE_FOLDER"
   exit 1
 fi
@@ -199,7 +199,7 @@ PRODUCT_FOLDER=$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2/target/products/org.ade
 
 TEST_SQL_SCRIPT="$PRODUCT_FOLDER"/utils/oracle/Test.sql
 DOCKER_EXEC=
-if [[ -n "$ORACLE_DOCKER_CONTAINER" ]]; then
+if [ -n "$ORACLE_DOCKER_CONTAINER" ]; then
   DOCKER_EXEC="docker exec -i $ORACLE_DOCKER_CONTAINER"
   $DOCKER_EXEC mkdir -p "$ORACLE_DOCKER_HOME"/idempiere/script
   docker cp "$TEST_SQL_SCRIPT" "$ORACLE_DOCKER_CONTAINER:$ORACLE_DOCKER_HOME"/idempiere/script

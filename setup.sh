@@ -25,7 +25,7 @@ MIGRATE_EXISTING_DATABASE=${MIGRATE_EXISTING_DATABASE:-true}
 
 POSITIONAL_ARGS=()
 
-while [[ $# -gt 0 ]]; do
+while [ $# -gt 0 ]; do
     case $1 in
     --help)
     echo "Usage: setup.sh [OPTION]"
@@ -308,7 +308,12 @@ if [ "$DOCKER_POSTGRES_CREATE" = true ] ; then
 fi
 
 if [ "$SETUP_DB" = true ] ; then
-	./setup-db.sh --source "$IDEMPIERE_SOURCE_FOLDER" --db-name $DB_NAME --db-host $DB_HOST --db-port $DB_PORT --db-user $DB_USER --db-pass $DB_PASS \
-		--db-admin-pass $DB_SYSTEM --http-host $IDEMPIERE_HOST --http-port $IDEMPIERE_PORT --https-port $IDEMPIERE_SSL_PORT --run-migration-script $MIGRATE_EXISTING_DATABASE \
-    --db-type $DB_TYPE --oracle-docker-container $ORACLE_DOCKER_CONTAINER --oracle-docker-home $ORACLE_DOCKER_HOME
+  if [ "$DB_TYPE" == "oracle" ] ; then
+    ./setup-db.sh --source "$IDEMPIERE_SOURCE_FOLDER" --db-type $DB_TYPE --db-name $DB_NAME --db-host $DB_HOST --db-port $DB_PORT --db-user $DB_USER --db-pass $DB_PASS \
+      --db-admin-pass $DB_SYSTEM --http-host $IDEMPIERE_HOST --http-port $IDEMPIERE_PORT --https-port $IDEMPIERE_SSL_PORT --run-migration-script $MIGRATE_EXISTING_DATABASE \
+      --oracle-docker-container $ORACLE_DOCKER_CONTAINER --oracle-docker-home $ORACLE_DOCKER_HOME
+  else
+    ./setup-db.sh --source "$IDEMPIERE_SOURCE_FOLDER" --db-type $DB_TYPE --db-name $DB_NAME --db-host $DB_HOST --db-port $DB_PORT --db-user $DB_USER --db-pass $DB_PASS \
+      --db-admin-pass $DB_SYSTEM --http-host $IDEMPIERE_HOST --http-port $IDEMPIERE_PORT --https-port $IDEMPIERE_SSL_PORT --run-migration-script $MIGRATE_EXISTING_DATABASE
+  fi
 fi
