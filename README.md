@@ -58,3 +58,7 @@ Examples of usage:
 * **eclipse.sh** - script to start Eclipse IDE.
 * **setup-db.sh** - script to setup DB connection propertis (idempiere.propertis), jetty server (jettyhome) and import iDempiere seed database (if DB does not exists) or apply migration scripts (if DB exists).
 * **setup-ws.sh** - setup idempiere workspace, set target platform.
+
+## GUI Frontend
+* **Python setup.py** to open the GTK front end for **setup.sh**. You can use this to generate and execute command line for **setup.sh**
+* **setup.html** a simple html and javascript front end for **setup.sh**. Open in browser to generate command line for **setup.sh**.
