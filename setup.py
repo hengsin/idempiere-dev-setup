@@ -13,17 +13,7 @@ class SetupScriptGTKUI:
     def __init__(self):
         # --- Default values from setup.sh (base defaults, some are PostgreSQL specific) ---
         self.defaults = {
-            "docker_postgres_create": False,
-            "docker_postgres_name": "postgres",
             "db_type": "postgresql", 
-            "db_name": "idempiere",
-            "db_host": "localhost",
-            "db_port": "5432",
-            "db_user": "adempiere",
-            "db_pass": "adempiere",
-            "db_system_pass": "postgres",
-            "oracle_docker_container": "",
-            "oracle_docker_home": "/opt/oracle", 
             "idempiere_host": "0.0.0.0",
             "idempiere_port": "8080",
             "idempiere_ssl_port": "8443",
@@ -36,7 +26,31 @@ class SetupScriptGTKUI:
             "setup_ws": True,
             "setup_db": True,
             "install_copilot": False,
-            "migrate_existing_database": True,
+            "migrate_existing_database": True
+        }
+        self.postgresql_defaults = {
+            "docker_postgres_create": False,
+            "docker_postgres_name": "postgres",
+            "oracle_docker_container": "",
+            "oracle_docker_home": "",
+            "db_name": "idempiere",
+            "db_host": "localhost",
+            "db_port": "5432",
+            "db_user": "adempiere",
+            "db_pass": "adempiere",
+            "db_system_pass": "postgres"
+        }
+        self.oracle_defaults = {
+            "docker_postgres_create": False,
+            "docker_postgres_name": "",
+            "oracle_docker_container": "",
+            "oracle_docker_home": "/opt/oracle", 
+            "db_name": "freepdb1",
+            "db_host": "localhost",
+            "db_port": "1521",
+            "db_user": "idempiere",
+            "db_pass": "idempiere",
+            "db_system_pass": "oracle"
         }
 
         # --- GTK Widgets ---
@@ -66,6 +80,7 @@ class SetupScriptGTKUI:
         main_vbox.set_border_width(5)
         main_scrolled_window.add(main_vbox)
 
+        self.db_type = self.defaults.get("db_type")
         self._create_section(main_vbox, "Docker Postgres Configuration", [
             ("Create and run Docker Postgres container (--docker-postgres-create)", "docker_postgres_create", "check"),
             ("Docker Postgres Container Name (--docker-postgres-name)", "docker_postgres_name", "entry"),
@@ -256,7 +271,12 @@ class SetupScriptGTKUI:
                 widget = Gtk.CheckButton(active=self.defaults.get(widget_key, False))
                 if callback: widget.connect("toggled", callback)
             elif widget_type == "entry_password":
-                widget = Gtk.Entry(visibility=False, text=str(self.defaults.get(widget_key, "")))
+                if widget_key in self.defaults:
+                    widget = Gtk.Entry(visibility=False, text=str(self.defaults.get(widget_key, "")))
+                elif self.db_type == 'postgresql':
+                    widget = Gtk.Entry(visibility=False, text=str(self.postgresql_defaults.get(widget_key, "")))
+                else:
+                    widget = Gtk.Entry(visibility=False, text=str(self.oracle_defaults.get(widget_key, "")))
             elif widget_type == "combo":
                 options = args[0] if args else []
                 callback = args[1] if len(args) > 1 else None
@@ -267,7 +287,12 @@ class SetupScriptGTKUI:
                 elif options: widget.set_active(0)
                 if callback: widget.connect("changed", callback)
             else: # "entry"
-                widget = Gtk.Entry(text=str(self.defaults.get(widget_key, "")))
+                if widget_key in self.defaults:
+                    widget = Gtk.Entry(text=str(self.defaults.get(widget_key, "")))
+                elif self.db_type == 'postgresql':
+                    widget = Gtk.Entry(text=str(self.postgresql_defaults.get(widget_key, "")))
+                else:
+                    widget = Gtk.Entry(text=str(self.oracle_defaults.get(widget_key, "")))
             if widget:
                 widget.set_hexpand(True)
                 grid.attach(widget, 1, row_in_grid, 1, 1)
@@ -294,31 +319,33 @@ class SetupScriptGTKUI:
             if len(model) > 0: widget.set_active(0)
 
     def _on_db_type_changed(self, widget):
-        selected_db_type = self._get_widget_value("db_type")
+        self.db_type = self._get_widget_value("db_type")
         pg_docker_create_checkbox = self.widgets.get("docker_postgres_create")
         pg_docker_name_entry = self.widgets.get("docker_postgres_name")
         oracle_container_entry = self.widgets.get("oracle_docker_container")
         oracle_home_entry = self.widgets.get("oracle_docker_home")
 
-        if selected_db_type == "postgresql":
-            self._set_widget_value("db_port", "5432")
-            self._set_widget_value("db_name", "idempiere")
-            self._set_widget_value("db_user", "adempiere")
-            self._set_widget_value("db_pass", "adempiere")
-            self._set_widget_value("db_system_pass", "postgres")
+        if self.db_type == "postgresql":
+            self._set_widget_value("db_port", self.postgresql_defaults.get("db_port"))
+            self._set_widget_value("db_name", self.postgresql_defaults.get("db_name"))
+            self._set_widget_value("db_user", self.postgresql_defaults.get("db_user"))
+            self._set_widget_value("db_pass", self.postgresql_defaults.get("db_pass"))
+            self._set_widget_value("db_system_pass", self.postgresql_defaults.get("db_system_pass"))
             if pg_docker_create_checkbox: pg_docker_create_checkbox.set_sensitive(True)
             if pg_docker_name_entry: pg_docker_name_entry.set_sensitive(True)
+            self._set_widget_value("docker_postgres_name", self.postgresql_defaults.get("docker_postgres_name"))
             if oracle_container_entry:
                 oracle_container_entry.set_text("")
                 oracle_container_entry.set_sensitive(False)
             if oracle_home_entry:
+                oracle_home_entry.set_text("")
                 oracle_home_entry.set_sensitive(False) 
-        elif selected_db_type == "oracle":
-            self._set_widget_value("db_port", "1521")
-            self._set_widget_value("db_name", "freepdb1")
-            self._set_widget_value("db_user", "idempiere")
-            self._set_widget_value("db_pass", "idempiere")
-            self._set_widget_value("db_system_pass", "oracle")
+        elif self.db_type == "oracle":
+            self._set_widget_value("db_port", self.oracle_defaults.get("db_port"))
+            self._set_widget_value("db_name", self.oracle_defaults.get("db_name"))
+            self._set_widget_value("db_user", self.oracle_defaults.get("db_user"))
+            self._set_widget_value("db_pass", self.oracle_defaults.get("db_pass"))
+            self._set_widget_value("db_system_pass", self.oracle_defaults.get("db_system_pass"))
             if pg_docker_create_checkbox:
                 pg_docker_create_checkbox.set_active(False)
                 pg_docker_create_checkbox.set_sensitive(False)
@@ -328,8 +355,7 @@ class SetupScriptGTKUI:
             if oracle_container_entry: oracle_container_entry.set_sensitive(True)
             if oracle_home_entry:
                 oracle_home_entry.set_sensitive(True)
-                if not oracle_home_entry.get_text():
-                     oracle_home_entry.set_text(self.defaults["oracle_docker_home"])
+                oracle_home_entry.set_text(self.oracle_defaults["oracle_docker_home"])
 
     def _toggle_branch_name_entry(self, widget=None):
         branch_entry = self.widgets.get("branch_name")
@@ -341,54 +367,56 @@ class SetupScriptGTKUI:
 
     def _build_command_list(self):
         cmd_parts = ['./setup.sh']
-        if self._get_widget_value("db_type") == "postgresql":
-            if self._get_widget_value("docker_postgres_create"):
-                cmd_parts.append('--docker-postgres-create')
-            val_docker_pg_name = self._get_widget_value("docker_postgres_name")
-            if self.widgets["docker_postgres_name"].get_sensitive() and \
-               (val_docker_pg_name != self.defaults["docker_postgres_name"] or val_docker_pg_name):
-                if val_docker_pg_name: 
-                    cmd_parts.extend(['--docker-postgres-name', val_docker_pg_name])
-        
-        cmd_parts.extend(['--db-type', self._get_widget_value("db_type")])
-        
-        db_params_to_add = {
-            "db_name": "--db-name", "db_host": "--db-host", "db_port": "--db-port",
-            "db_user": "--db-user", "db_pass": "--db-pass", "db_system_pass": "--db-admin-pass"
-        }
-        for var_key, flag_name in db_params_to_add.items():
-            val = self._get_widget_value(var_key)
-            if val: 
-                cmd_parts.extend([flag_name, val])
-
-        if self._get_widget_value("db_type") == "oracle":
-            val_oracle_container = self._get_widget_value("oracle_docker_container")
-            if val_oracle_container and self.widgets["oracle_docker_container"].get_sensitive():
-                cmd_parts.extend(['--oracle-docker-container', val_oracle_container])
-            val_oracle_home = self._get_widget_value("oracle_docker_home")
-            if self.widgets["oracle_docker_home"].get_sensitive() and \
-               (val_oracle_home != self.defaults["oracle_docker_home"] or val_oracle_home):
-                 if val_oracle_home:
-                    cmd_parts.extend(['--oracle-docker-home', val_oracle_home])
-        
-        server_param_map = {
-            "idempiere_host": "--http-host", "idempiere_port": "--http-port",
-            "idempiere_ssl_port": "--https-port"
-        }
-        for var_key, flag_name in server_param_map.items():
-            val = self._get_widget_value(var_key)
-            if val != str(self.defaults[var_key]) or val: 
-                cmd_parts.extend([flag_name, val])
+        if self._get_widget_value("setup_db") == True:
+            cmd_parts.extend(['--db-type', self._get_widget_value("db_type")])
+            if self._get_widget_value("db_type") == "postgresql":
+                if self._get_widget_value("docker_postgres_create"):
+                    cmd_parts.append('--docker-postgres-create')
+                    val_docker_pg_name = self._get_widget_value("docker_postgres_name")
+                    if self.widgets["docker_postgres_name"].get_sensitive() and \
+                    (val_docker_pg_name != self.postgresql_defaults["docker_postgres_name"] or val_docker_pg_name):
+                        if val_docker_pg_name: 
+                            cmd_parts.extend(['--docker-postgres-name', val_docker_pg_name])            
+            db_params_to_add = {
+                "db_name": "--db-name", "db_host": "--db-host", "db_port": "--db-port",
+                "db_user": "--db-user", "db_pass": "--db-pass", "db_system_pass": "--db-admin-pass"
+            }
+            for var_key, flag_name in db_params_to_add.items():
+                val = self._get_widget_value(var_key)
+                if val: 
+                    cmd_parts.extend([flag_name, val])
+            if self._get_widget_value("db_type") == "oracle":
+                val_oracle_container = self._get_widget_value("oracle_docker_container")
+                if val_oracle_container and self.widgets["oracle_docker_container"].get_sensitive():
+                    cmd_parts.extend(['--oracle-docker-container', val_oracle_container])
+                    val_oracle_home = self._get_widget_value("oracle_docker_home")
+                    if self.widgets["oracle_docker_home"].get_sensitive() and \
+                    (val_oracle_home != self.oracle_defaults["oracle_docker_home"] or val_oracle_home):
+                        if val_oracle_home:
+                            cmd_parts.extend(['--oracle-docker-home', val_oracle_home])
+            server_param_map = {
+                "idempiere_host": "--http-host", "idempiere_port": "--http-port",
+                "idempiere_ssl_port": "--https-port"
+            }
+            for var_key, flag_name in server_param_map.items():
+                val = self._get_widget_value(var_key)
+                if val != str(self.defaults[var_key]) or val: 
+                    cmd_parts.extend([flag_name, val])
 
         src_env_map = {
-            "idempiere_source_folder": "--source", "source_url": "--repository-url",
-            "eclipse_folder": "--eclipse"
+            "idempiere_source_folder": "--source", "source_url": "--repository-url"
         }
         for var_key, flag_name in src_env_map.items():
             val = self._get_widget_value(var_key)
             if val != self.defaults[var_key] or val: 
                  cmd_parts.extend([flag_name, val])
         
+        #"eclipse_folder": "--eclipse"
+        if self._get_widget_value("setup_ws") == True:
+            val = self._get_widget_value("eclipse_folder")
+            if val != self.defaults["eclipse_folder"] or val:
+                cmd_parts.extend(["--eclipse", val])
+
         if self._get_widget_value("clone_branch_enable"):
             branch_name_val = self._get_widget_value("branch_name")
             if branch_name_val: cmd_parts.extend(['--branch', branch_name_val])
@@ -396,8 +424,10 @@ class SetupScriptGTKUI:
         if self._get_widget_value("load_idempiere_env"): cmd_parts.append('--load-idempiere-env')
         if not self._get_widget_value("setup_ws"): cmd_parts.append('--skip-setup-ws')
         if not self._get_widget_value("setup_db"): cmd_parts.append('--skip-setup-db')
-        if self._get_widget_value("install_copilot"): cmd_parts.append('--install-copilot')
-        if not self._get_widget_value("migrate_existing_database"): cmd_parts.append('--skip-migration-script')
+        if self._get_widget_value("setup_ws") == True:
+            if self._get_widget_value("install_copilot"): cmd_parts.append('--install-copilot')
+        if self._get_widget_value("setup_db") == True:
+            if not self._get_widget_value("migrate_existing_database"): cmd_parts.append('--skip-migration-script')
         return cmd_parts
 
     def _append_to_popup_textview(self, text):
