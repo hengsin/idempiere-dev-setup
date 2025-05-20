@@ -4,6 +4,7 @@ from gi.repository import Gtk, GLib, Pango, Gdk # Gdk needed for CssProvider
 
 import subprocess
 import shlex
+import sys
 import threading
 import os # For checking script existence and permissions
 import signal # For sending signals to the process
@@ -619,6 +620,7 @@ class SetupScriptGTKUI:
         return False
 
 if __name__ == '__main__':
-    GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
+    if sys.platform != "win32":
+      GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
     app = SetupScriptGTKUI()
     Gtk.main()

@@ -68,4 +68,11 @@ Examples of usage:
 * Option 2 is to use the Git bash shell that's part of the Git installation for Windows.
   * Need to install wget and maven. I uses scoop (https://scoop.sh/) to install both but you can use whatever means you prefer to.
   * Installation of JDK is optional. The script will use the JRE bundle with Eclipse if you don't already have a JDK install.
+* Option 3 is to use msys2
+  * You can install msys2 with scoop  (https://scoop.sh/) and the installation will goes to "C:\Users\<you user name>\scoop\apps\msys2\current".
+  * At the installation folder above, run "ucrt64.exe" to open the msys2 terminal.
+  * If you have install wget and maven using scoop, you will have to add "C:\Users\<you user name>\scoop\apps\maven\current\bin"
+    and "C:\Users\<you user name>\scoop\apps\wget\current\bin" to your PATH environment variable.
+  * To use the python frontend, you need to install python3 and the require dependencies using pacman:
   
+    pacman -S python mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-python3 mingw-w64-ucrt-x86_64-python3-gobject
