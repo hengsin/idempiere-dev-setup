@@ -60,28 +60,40 @@ else
 fi
 
 cd $ECLIPSE
-DESTINATION=$(pwd)
+DESTINATION="$(pwd)"
+
+if [ "$OSTYPE" = "msys" ] ; then
+	JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_21.0.6.v20250130-0529"
+	ECLIPSE_JRE="$(pwd -W)/plugins/$JUSTJ_BUNDLE/jre/"
+else
+	JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.6.v20250130-0529"	
+	ECLIPSE_JRE="$(pwd)/plugins/$JUSTJ_BUNDLE/jre/"
+fi
+
+if [ "$JAVA_HOME" = "" ] ; then
+	JAVA_HOME="$ECLIPSE_JRE"
+fi
 
 echo
 echo "*** Install XText Runtime ***"
 echo
-./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
+./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
     -repository $XTEXT_RUNTIME_REPOSITORY,$MWE_REPOSITORY,$EMF_REPOSITORY -destination "$DESTINATION" \
     -installIU "org.eclipse.xtext.runtime.feature.group,org.eclipse.xtext.ui.feature.group,org.eclipse.emf.mwe2.runtime,org.eclipse.emf.codegen.ecore.xtext,org.eclipse.emf.ecore.xcore.feature.group" 
 
 echo
 echo "*** Install CBI Target Platform DSL Editor ***"
 echo
-./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
+./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
     -repository $TARGETPLATFORM_DSL_REPOSITORY -destination "$DESTINATION" \
     -installIU org.eclipse.cbi.targetplatform.feature.feature.group
 
-./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/setup-ws.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
+./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/setup-ws.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 
-./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/loadtargetplatform.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
+./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/loadtargetplatform.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 
 if [ "$INSTALL_COPILOT" = true ]; then
-    ./eclipse -vm $JAVA_HOME/bin/java -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
+    ./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
     -repository $LSP4_REPOSITORY,$COPILOT_REPOSITORY -destination "$DESTINATION" \
     -installIU "com.microsoft.copilot.eclipse.feature.feature.group" 
 fi

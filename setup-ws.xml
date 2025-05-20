@@ -1,86 +1,157 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="project" default="default">  
-<path id="groovy.classpath">
-        <fileset dir="${basedir}/groovy-4.0.13/lib/">
-            <include name="*.jar" />
+	<path id="jython.classpath">
+        <fileset dir="${basedir}">
+            <include name="jython-standalone-2.7.4.jar" />
         </fileset>
-</path>
-<taskdef name="groovy"
-         classname="org.codehaus.groovy.ant.Groovy"
-         classpathref="groovy.classpath" />  
-<target name="default">
-    <groovy>
-		import java.io.*;
-		import java.util.*;
-		import java.util.regex.*;
-		import java.time.LocalDateTime;
+	</path>
+	<target name="default">
+        <script language="jython" classpathref="jython.classpath">
+            <![CDATA[
+import os
+from java.io import File
+from java.util import Hashtable
+from java.time import LocalDateTime
 
-		import org.eclipse.core.resources.*;
-		import org.eclipse.core.runtime.*;
-		import org.eclipse.core.runtime.jobs.*;
-		import org.eclipse.equinox.app.*;
-		import org.osgi.framework.*;
-		import org.eclipse.jdt.core.*;
+# Eclipse imports
+from org.eclipse.core.runtime import Platform, Path, IProgressMonitor, IStatus
+from org.eclipse.core.resources import IResource, ResourcesPlugin
+from org.eclipse.jdt.core import JavaCore
 
-		import static groovy.io.FileType.*
- 
-        	bundle = org.eclipse.core.runtime.Platform.getBundle("org.eclipse.core.resources");
-        	resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
-        	workspace = resPlugin.getWorkspace();
-        
-       	println ""
-       	println "*** " + LocalDateTime.now().toString() + " Import projects into workspace ***";
-       	println ""
-        
-        	def groovySrcDir = new File(project.properties."idempiere");
-        
-		groovySrcDir.eachFile {
-            		fullPath = it.getAbsolutePath();			
-			if (fullPath.endsWith("org.idempiere.javadoc") || fullPath.endsWith("ztl") || fullPath.endsWith("selenese") 
-				|| fullPath.endsWith("doc") || fullPath.endsWith("fitnesse") || fullPath.endsWith("migration")
-				|| fullPath.endsWith("event.test") || fullPath.endsWith("org.adempiere.report.jasper.fragment.test") 
-				|| fullPath.endsWith("utils_dev") || fullPath.endsWith("db")
-				|| fullPath.endsWith("org.adempiere.ui.zk.example"))
-				return;
-				
-			projectFile = new File(it, ".project");
-			if (!projectFile.exists()) return;
-			
-			projectDescription = workspace.loadProjectDescription(new Path(projectFile.getAbsolutePath()));
-			println(projectDescription.getName());
-			project = workspace.getRoot().getProject(projectDescription.getName());
-			if (project.isOpen() == false) {
-				project.create(projectDescription, null);
-				project.open(null);
-			} else {
-				project.refreshLocal(IResource.DEPTH_INFINITE, null);
-			}
-		}
-		
-		def estimatedTotal = 0;
-		def workedTotal = 0;
-		def monitor = [ blockedReason: null,
-				 beginTask: {String name, Integer totalWork -> println name; estimatedTotal = totalWork;},
-				 setBlocked: {reason -> blockedReason = reason; println "Blocked: " + reason},	
-				 clearBlocked: {-> if (blockedReason != null) {println "Clear Block: " + blockedReason; blockedReason = null;}},
-				 done: {-> println "done"}, 
-				 internalWorked: {Double work -> println "..."},
-				 isCanceled: {-> return false}, 
-				 setCanceled: {Boolean value -> println "setCanceled: " + value},
-				 setTaskName: {String name -> println "Task: " + name}, 
-				 subTask: {String name -> println "Sub task: " + name},
-				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal}];
-		
-		Hashtable options = JavaCore.getOptions();
-		options.put(JavaCore.COMPILER_COMPLIANCE, "17");
-		options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, "17");
-		options.put(JavaCore.COMPILER_SOURCE, "17");
-		JavaCore.setOptions(options);
-		
-		println ""		
-		println "*** " + LocalDateTime.now().toString() + " Saving workspace after import ***";			
-		println ""		 
-		workspace.save(true, monitor as IProgressMonitor);
-    </groovy>
-</target>
+# Define a custom progress monitor that implements IProgressMonitor
+class CustomProgressMonitor(IProgressMonitor):
+    def __init__(self):
+        self.estimatedTotal = 0
+        self.workedTotal = 0
+        self.blockedReason = None # This would be an IStatus object
+
+    def beginTask(self, name, totalWork):
+        print name
+        self.estimatedTotal = totalWork
+        self.workedTotal = 0
+
+    def setBlocked(self, reason): # reason is an IStatus
+        self.blockedReason = reason
+        if reason:
+            print "Blocked: {}".format(reason.toString()) # Or reason.getMessage() for just the message
+        else:
+            print "Blocked: (null reason)"
+
+    def clearBlocked(self):
+        if self.blockedReason is not None:
+            print "Clear Block: {}".format(self.blockedReason.toString()) # Or self.blockedReason.getMessage()
+            self.blockedReason = None
+
+    def done(self):
+        print "done"
+
+    def internalWorked(self, work):
+        # print "Internal worked: {}".format(work) # Original was just "..."
+        print "..."
+
+    def isCanceled(self):
+        return False
+
+    def setCanceled(self, value):
+        print "setCanceled: {}".format(value)
+
+    def setTaskName(self, name):
+        print "Task: {}".format(name)
+
+    def subTask(self, name):
+        print "Sub task: {}".format(name)
+
+    def worked(self, work):
+        self.workedTotal += work
+        print "Progress: {} of {}".format(self.workedTotal, self.estimatedTotal)
+
+# --- Main script logic ---
+
+# Accessing the workspace
+try:
+    workspace = ResourcesPlugin.getWorkspace()
+except Exception, e:
+    print "Fatal Error: Could not get workspace. Ensure Eclipse libraries are on classpath."
+    print str(e)
+    # Consider exiting if sys is imported: import sys; sys.exit(1)
+    raise # Re-raise to stop Ant script
+
+print "" # Jython 2.x: print statement adds a newline
+print "*** {} Import projects into workspace ***".format(LocalDateTime.now().toString())
+print ""
+
+# Get the idempiere source directory path from Ant project properties
+idempiere_path_property = project.getProperty("idempiere")
+
+if idempiere_path_property is None:
+    print "Warning: Ant property 'idempiere' is not set. Skipping project import."
+else:
+    idempiereSrcDir = File(idempiere_path_property)
+
+    if idempiereSrcDir.exists() and idempiereSrcDir.isDirectory():
+        for item_name in os.listdir(idempiereSrcDir.getAbsolutePath()):
+            it_file = File(idempiereSrcDir, item_name) # File object for the item in idempiereSrcDir
+
+            if not it_file.isDirectory(): # We are looking for project directories
+                continue
+
+            fullPath = it_file.getAbsolutePath()
+
+            excluded_suffixes = [
+                "org.idempiere.javadoc", "ztl", "selenese", "doc", "fitnesse",
+                "migration", "event.test", "org.adempiere.report.jasper.fragment.test",
+                "utils_dev", "db", "org.adempiere.ui.zk.example"
+            ]
+
+            if any(fullPath.endswith(suffix) for suffix in excluded_suffixes):
+                continue
+
+            projectFile = File(it_file, ".project") # .project file within the item directory
+            if not projectFile.exists():
+                continue
+
+            try:
+                projectDescription = workspace.loadProjectDescription(Path(projectFile.getAbsolutePath()))
+                project_name = projectDescription.getName()
+                print project_name # Print the name of the project being processed
+
+                eclipse_project = workspace.getRoot().getProject(project_name)
+
+                if not eclipse_project.isOpen():
+                    # Last argument is IProgressMonitor, None is equivalent to null
+                    eclipse_project.create(projectDescription, None)
+                    eclipse_project.open(None)
+                else:
+                    eclipse_project.refreshLocal(IResource.DEPTH_INFINITE, None)
+            except Exception, e:
+                print "Error processing project {}: {}".format(fullPath, str(e))
+    elif idempiere_path_property : # Only print if property was set but path is invalid
+        print "Source directory '{}' does not exist or is not a directory.".format(idempiere_path_property)
+
+# Configure JavaCore options
+try:
+    options = JavaCore.getOptions()
+    # Using JavaCore constants for versions is preferred if available and correct for your JDT version
+    # If JavaCore.VERSION_17 is not found, use the string "17"
+    options.put(JavaCore.COMPILER_COMPLIANCE, getattr(JavaCore, "VERSION_17", "17"))
+    options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, getattr(JavaCore, "VERSION_17", "17"))
+    options.put(JavaCore.COMPILER_SOURCE, getattr(JavaCore, "VERSION_17", "17"))
+    JavaCore.setOptions(options)
+except Exception, e:
+    print "Error setting JavaCore options: {}".format(str(e))
+
+
+print ""
+print "*** {} Saving workspace after import ***".format(LocalDateTime.now().toString())
+print ""
+
+monitor_instance = CustomProgressMonitor()
+try:
+    workspace.save(True, monitor_instance) # True for full save (wait for completion), monitor_instance for progress
+except Exception, e:
+    print "Error saving workspace: {}".format(str(e))
+
+            ]]>
+        </script>
+    </target>
 </project>

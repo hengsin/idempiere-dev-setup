@@ -201,23 +201,43 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-if [ ! -f eclipse-jee-2025-03-R-linux-gtk-x86_64.tar.gz ]; then
+ECLIPSE_DOWNLOAD=eclipse-jee-2025-03-R-linux-gtk-x86_64.tar.gz
+JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.6.v20250130-0529"
+#msys is git bash for windows
+if [ "$OSTYPE" = "msys" ] ; then
+	ECLIPSE_DOWNLOAD=eclipse-jee-2025-03-R-win32-x86_64.zip
+	JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_21.0.6.v20250130-0529"
+fi
+
+if [ ! -f "$ECLIPSE_DOWNLOAD" ]; then
         echo
         echo "*** Download Eclipse ***"
         echo
-   	 wget https://download.eclipse.org/technology/epp/downloads/release/2025-03/R/eclipse-jee-2025-03-R-linux-gtk-x86_64.tar.gz
+   	 wget https://download.eclipse.org/technology/epp/downloads/release/2025-03/R/"$ECLIPSE_DOWNLOAD"
 fi
 if [ ! -d $ECLIPSE ]; then
         echo
         echo "*** Extract Eclipse ***"
         echo
-        tar --warning=no-unknown-keyword -xvf eclipse-jee-2025-03-R-linux-gtk-x86_64.tar.gz
-        ECLIPSE=eclipse
+	if [ "$OSTYPE" = "msys" ] ; then
+		unzip "$ECLIPSE_DOWNLOAD"
+	else
+       	tar --warning=no-unknown-keyword -xvf "$ECLIPSE_DOWNLOAD"
+	fi
+    ECLIPSE=eclipse
 fi
 
-export JAVA_HOME=$(pwd)/eclipse/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.6.v20250130-0529/jre/
+if [ "$OSTYPE" = "msys" ] ; then
+	ECLIPSE_JRE="$(pwd -W)/$ECLIPSE/plugins/$JUSTJ_BUNDLE/jre/"
+else
+	ECLIPSE_JRE="$(pwd)/$ECLIPSE/plugins/$JUSTJ_BUNDLE/jre/"
+fi
 
-JAVA_MAJOR_VERSION=$($JAVA_HOME/bin/java -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p' | cut -d' ' -f1)
+if [ "$JAVA_HOME" = "" ] ; then
+	JAVA_HOME="$ECLIPSE_JRE"
+fi
+
+JAVA_MAJOR_VERSION=$("$JAVA_HOME/bin/java" -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p' | cut -d' ' -f1)
 
 if [ "$JAVA_MAJOR_VERSION" != "17" ] && [ "$JAVA_MAJOR_VERSION" != "21" ]; then
 	echo -e "Please set the JAVA_HOME environment variable pointing to a JDK 17 or JDK 21 installation folder"
@@ -240,18 +260,11 @@ else
                 git -C $IDEMPIERE_SOURCE_FOLDER checkout $BRANCH_NAME
         fi
 fi
-if [ ! -f apache-groovy-binary-4.0.13.zip ]; then
+if [ ! -f jython-standalone-2.7.4.jar ]; then
 	echo
-	echo "*** Download groovy ***"
+	echo "*** Download jython ***"
 	echo
-	wget https://archive.apache.org/dist/groovy/4.0.13/distribution/apache-groovy-binary-4.0.13.zip
-	unzip apache-groovy-binary-4.0.13.zip
-fi
-if [ ! -d "groovy-4.0.13" ]; then
-	echo
-	echo "*** Extract Groovy ***"
-	echo
-	unzip apache-groovy-binary-4.0.13.zip
+	wget https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.4/jython-standalone-2.7.4.jar
 fi
 
 echo
@@ -273,13 +286,18 @@ fi
 sleep 1
 
 if [ "$SETUP_WS" = true ]; then
+  if [ "$OSTYPE" = "msys" ] ; then
+	WORKSPACE_PARENT="$(pwd -W)"
+  else
+	WORKSPACE_PARENT="$(pwd)"
+  fi
   IDE_PREFERENCE=$ECLIPSE/configuration/.settings/org.eclipse.ui.ide.prefs
   if [ ! -d $ECLIPSE/configuration/.settings ]; then
     mkdir $ECLIPSE/configuration/.settings
   fi
   if [ ! -f $ECLIPSE/configuration/.settings/org.eclipse.ui.ide.prefs ]; then
     echo "MAX_RECENT_WORKSPACES=10" >> $IDE_PREFERENCE
-    echo "RECENT_WORKSPACES=$PWD/idempiere"  >> $IDE_PREFERENCE
+    echo "RECENT_WORKSPACES=$WORKSPACE_PARENT/idempiere"  >> $IDE_PREFERENCE
     echo "RECENT_WORKSPACES_PROTOCOL=3" >> $IDE_PREFERENCE
     echo "SHOW_RECENT_WORKSPACES=false" >> $IDE_PREFERENCE
     echo "SHOW_WORKSPACE_SELECTION_DIALOG=true" >> $IDE_PREFERENCE

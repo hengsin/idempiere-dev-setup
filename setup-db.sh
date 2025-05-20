@@ -194,8 +194,8 @@ fi
 
 echo $IDEMPIERE_SOURCE_FOLDER
 
-CWD=$(pwd)
-PRODUCT_FOLDER=$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64
+CWD="$(pwd)"
+PRODUCT_FOLDER="$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64"
 
 TEST_SQL_SCRIPT="$PRODUCT_FOLDER"/utils/oracle/Test.sql
 DOCKER_EXEC=
@@ -227,7 +227,16 @@ else
   fi
 fi
 
-cd $PRODUCT_FOLDER
+cd "$PRODUCT_FOLDER"
+
+export CONSOLE_SETUP_BATCH_MODE=Y
+
+#msys is Windows git bash
+if [ "$OSTYPE" = "msys" ] ; then
+  #replace '\' with '/'. '\' will problems with echo -e below
+  JAVA_HOME=${JAVA_HOME//\\//}
+  IDEMPIERE_HOME=${IDEMPIERE_HOME//\\//}
+fi
 
 if [ "$DB_TYPE" == "postgresql" ]; then
   if [ ! -f jettyhome/etc/keystore ]; then
@@ -249,11 +258,6 @@ if [ "$DB_TYPE" == "postgresql" ]; then
     cd utils
     echo "Database '$DB_NAME' not found, starting import..."
     echo -e "\n" | ./RUN_ImportIdempiere.sh
-    echo "Synchronizing database..."
-    ./RUN_SyncDB.sh
-    cd ..
-    echo "Signing database..."
-    ./sign-database-build.sh
   else
     echo "Database '$DB_NAME' is found..."
     if [ "$MIGRATE_EXISTING_DATABASE" = true ]; then
@@ -262,24 +266,18 @@ if [ "$DB_TYPE" == "postgresql" ]; then
       ./RUN_SyncDB.sh
       cd ..
       echo "Signing database..."
-      ./sign-database-build.sh
+      ./sign-database-build-alt.sh
     else
       echo "MIGRATE_EXISTING_DATABASE is equal to 'false'. Skipping..."
     fi
   fi
 else
   if ! $DOCKER_EXEC sqlplus -S -L "$DB_USER"/"$DB_PASS"@"$DB_HOST":"$DB_PORT"/"$DB_NAME" @"$TEST_SQL_SCRIPT"  > /dev/null 2>&1 ; then
-    echo $ORACLE_DOCKER_CONTAINER
     cd utils
     echo "Database '$DB_USER' not found, starting import..."
     export ORACLE_DOCKER_CONTAINER
     export ORACLE_DOCKER_HOME
     echo -e "\n" | ./RUN_ImportIdempiere.sh
-    echo "Synchronizing database..."
-    ./RUN_SyncDB.sh
-    cd ..
-    echo "Signing database..."
-    ./sign-database-build.sh
   else
     echo "Database '$DB_USER' is found..."
     if [ "$MIGRATE_EXISTING_DATABASE" = true ]; then
@@ -288,7 +286,7 @@ else
       ./RUN_SyncDB.sh
       cd ..
       echo "Signing database..."
-      ./sign-database-build.sh
+      ./sign-database-build-alt.sh
     else
       echo "MIGRATE_EXISTING_DATABASE is equal to 'false'. Skipping..."
     fi
@@ -296,7 +294,7 @@ else
 fi
   
 cd "$CWD"
-cp -r -f $PRODUCT_FOLDER/jettyhome $IDEMPIERE_SOURCE_FOLDER
-cp -f $PRODUCT_FOLDER/*.properties $IDEMPIERE_SOURCE_FOLDER
-cp -f $PRODUCT_FOLDER/hazelcast.xml $IDEMPIERE_SOURCE_FOLDER
-cp $IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64/.idpass  $IDEMPIERE_SOURCE_FOLDER
+cp -r -f "$PRODUCT_FOLDER/jettyhome" "$IDEMPIERE_SOURCE_FOLDER"
+cp -f "$PRODUCT_FOLDER"/*.properties "$IDEMPIERE_SOURCE_FOLDER"
+cp -f "$PRODUCT_FOLDER/hazelcast.xml" "$IDEMPIERE_SOURCE_FOLDER"
+cp "$IDEMPIERE_SOURCE_FOLDER/org.idempiere.p2/target/products/org.adempiere.server.product/linux/gtk/x86_64/.idpass"  "$IDEMPIERE_SOURCE_FOLDER"

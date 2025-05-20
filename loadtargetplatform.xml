@@ -1,60 +1,162 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="project" default="default">  
-<path id="groovy.classpath">
-        <fileset dir="${basedir}/groovy-4.0.13/lib/">
-            <include name="*.jar" />
+<project name="project" default="default">
+	<path id="jython.classpath">
+        <fileset dir="${basedir}">
+            <include name="jython-standalone-2.7.4.jar" />
         </fileset>
-</path>
-<taskdef name="groovy"
-         classname="org.codehaus.groovy.ant.Groovy"
-         classpathref="groovy.classpath" /> 
-<target name="default">
-    <groovy>
-	<![CDATA[
-		import java.io.*;
-		import java.util.*;
-		import java.util.regex.*;
-		import java.time.LocalDateTime;
+	</path>
+    <target name="default">
+        <script language="jython" classpathref="jython.classpath">
+            <![CDATA[
+import traceback # For detailed exception printing
+from java.time import LocalDateTime
 
-		import org.eclipse.core.resources.*;
-		import org.eclipse.core.runtime.*;
-		import org.eclipse.core.runtime.jobs.Job;
-		import org.eclipse.equinox.app.*;
-		import org.osgi.framework.*;
-		import org.eclipse.pde.core.target.ITargetPlatformService;
-		import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
+# Eclipse/OSGi imports
+from org.eclipse.core.runtime import Platform, Path, IProgressMonitor, IStatus
+from org.eclipse.core.resources import ResourcesPlugin, IFile # IFile for type hint/check
+# ITargetPlatformService and LoadTargetDefinitionJob are central to this script
+from org.eclipse.pde.core.target import ITargetPlatformService, LoadTargetDefinitionJob
+# BundleContext and ServiceReference are implicitly used via Java objects but good to be aware of
+# from org.osgi.framework import BundleContext, ServiceReference
 
-		import static groovy.io.FileType.*
- 		
-        bundle = org.eclipse.core.runtime.Platform.getBundle("org.eclipse.core.resources");
-        resPlugin = bundle.loadClass("org.eclipse.core.resources.ResourcesPlugin");
-        workspace = resPlugin.getWorkspace();
-        
-		bundleContext = bundle.getBundleContext();
-		serviceRef = bundleContext.getServiceReference(ITargetPlatformService.class);
-		service = bundleContext.getService(serviceRef);
-		
-		root = workspace.getRoot();
-		targetFile = root.getFile(new Path("org.idempiere.p2.targetplatform/org.idempiere.p2.targetplatform.mirror.target"));
-		handle = service.getTarget(targetFile);
-		target =  handle.getTargetDefinition();		
-		println "*** " + LocalDateTime.now().toString() + " Loading " + target.getName() + ", this will take a while ***";
-		LoadTargetDefinitionJob job = new LoadTargetDefinitionJob(target);
-		def estimatedTotal = 0;
-		def workedTotal = 0;
-		def monitor = [beginTask: {String name, Integer totalWork -> println name; estimatedTotal = totalWork;},
-				 done: {-> println "done"}, internalWorked: {Double work -> println "..."},
-				 isCanceled: {-> return false}, setCanceled: {Boolean value -> println "setCanceled: " + value},
-				 setTaskName: {String name -> println "Task: " + name}, subTask: {String name -> println "Sub task: " + name},
-				 worked: {Integer work -> workedTotal += work; println "Progress: " + workedTotal + " of " + estimatedTotal}];
-				
-		try {
-			job.runInWorkspace(monitor as IProgressMonitor);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-	]]>
-    </groovy>
-</target>
+
+# Define a custom progress monitor that implements IProgressMonitor
+# This is the same class as provided in the previous conversion.
+class CustomProgressMonitor(IProgressMonitor):
+    def __init__(self):
+        self.estimatedTotal = 0
+        self.workedTotal = 0
+        self.blockedReason = None # This would be an IStatus object
+
+    def beginTask(self, name, totalWork):
+        print name
+        self.estimatedTotal = totalWork
+        self.workedTotal = 0
+
+    def setBlocked(self, reason): # reason is an IStatus
+        self.blockedReason = reason
+        if reason:
+            print "Blocked: {}".format(reason.toString())
+        else:
+            print "Blocked: (null reason)"
+
+    def clearBlocked(self):
+        if self.blockedReason is not None:
+            print "Clear Block: {}".format(self.blockedReason.toString())
+            self.blockedReason = None
+
+    def done(self):
+        print "done"
+
+    def internalWorked(self, work):
+        print "..."
+
+    def isCanceled(self):
+        return False
+
+    def setCanceled(self, value):
+        print "setCanceled: {}".format(value)
+
+    def setTaskName(self, name):
+        print "Task: {}".format(name)
+
+    def subTask(self, name):
+        print "Sub task: {}".format(name)
+
+    def worked(self, work):
+        self.workedTotal += work
+        print "Progress: {} of {}".format(self.workedTotal, self.estimatedTotal)
+
+# --- Main script logic ---
+workspace = None
+bundleContext = None # Keep a reference for ungetService
+service_ref = None   # Keep a reference for ungetService
+target_platform_service = None # The service instance
+
+try:
+    # Get workspace
+    workspace = ResourcesPlugin.getWorkspace()
+    if workspace is None:
+        raise Exception("Fatal Error: Could not get workspace. Ensure Eclipse environment is correctly set up.")
+
+    print "*** {} Acquiring Target Platform Service ***".format(LocalDateTime.now().toString())
+
+    # Get the bundle context via the Platform and a known bundle, as in the Groovy script.
+    # The bundle "org.eclipse.core.resources" was used by the original script.
+    core_resources_bundle_name = "org.eclipse.core.resources"
+    bundle = Platform.getBundle(core_resources_bundle_name)
+    if bundle is None:
+        raise Exception("OSGi Error: Bundle '{}' not found. Ensure the OSGi framework is active and the bundle is resolved.".format(core_resources_bundle_name))
+
+    bundleContext = bundle.getBundleContext()
+    if bundleContext is None:
+        raise Exception("OSGi Error: BundleContext not available from bundle '{}'.".format(core_resources_bundle_name))
+
+    # Get ITargetPlatformService.
+    # In Jython, when a Java method expects a Class object, you can pass the Python variable holding the imported Java class.
+    service_ref = bundleContext.getServiceReference(ITargetPlatformService)
+    if service_ref is None:
+        raise Exception("OSGi Error: ServiceReference for ITargetPlatformService not found. Is the PDE Core bundle (org.eclipse.pde.core) active and service registered?")
+
+    target_platform_service = bundleContext.getService(service_ref)
+    if target_platform_service is None:
+        # This should ideally not happen if service_ref is not None, but check anyway.
+        raise Exception("OSGi Error: ITargetPlatformService could not be obtained from service reference.")
+
+    print "*** {} Locating Target Definition File ***".format(LocalDateTime.now().toString())
+    workspace_root = workspace.getRoot()
+    target_file_path_str = "org.idempiere.p2.targetplatform/org.idempiere.p2.targetplatform.mirror.target"
+    target_file_eclipse_path = Path(target_file_path_str)
+
+    target_file_resource = workspace_root.getFile(target_file_eclipse_path)
+    if not target_file_resource.exists():
+        raise Exception("File Error: Target definition file not found at workspace path: '{}'".format(target_file_path_str))
+
+    # Get the target definition handle and the definition itself
+    target_handle = target_platform_service.getTarget(target_file_resource)
+    target_definition = target_handle.getTargetDefinition()
+
+    print "*** {} Loading Target Definition: '{}', this may take a while ***".format(
+        LocalDateTime.now().toString(),
+        target_definition.getName()
+    )
+
+    # Create and run the LoadTargetDefinitionJob
+    job = LoadTargetDefinitionJob(target_definition)
+    monitor_instance = CustomProgressMonitor()
+
+    print "*** Starting LoadTargetDefinitionJob.run() (synchronous execution) ***"
+    # The run() method of a Job executes it synchronously in the current thread and returns an IStatus.
+    status = job.run(monitor_instance)
+
+    if status.isOK():
+        print "*** Target Platform loading completed successfully. Status: {} ***".format(status.toString())
+    else:
+        # Handle non-OK statuses (ERROR, WARNING, INFO, CANCEL)
+        severity_map = {IStatus.ERROR: "ERROR", IStatus.WARNING: "WARNING", IStatus.INFO: "INFO", IStatus.CANCEL: "CANCEL"}
+        severity_str = severity_map.get(status.getSeverity(), "UNKNOWN_SEVERITY")
+        print "!!! Target Platform loading finished. Severity: {}, Message: {}, Details: {} !!!".format(
+            severity_str,
+            status.getMessage(),
+            status.toString()
+        )
+        if status.matches(IStatus.ERROR): # Check if severity is ERROR
+            raise Exception("Error loading target platform: " + status.getMessage())
+        # You could also raise an exception for CANCEL or WARNING if desired
+
+except Exception, e:
+    print "--- AN ERROR OCCURRED ---"
+    # This provides a Java-like stack trace for the Python exception
+    traceback.print_exc()
+    # Re-raise the exception to make the Ant script fail if that's the desired behavior
+    # raise
+finally:
+    # CRITICAL: Always unget the OSGi service if it was obtained
+    if bundleContext is not None and service_ref is not None and target_platform_service is not None:
+        # Ensure target_platform_service is not None because getService might have failed after getServiceReference succeeded
+        print "*** {} Releasing ITargetPlatformService ***".format(LocalDateTime.now().toString())
+        bundleContext.ungetService(service_ref)
+            ]]>
+        </script>
+    </target>
 </project>

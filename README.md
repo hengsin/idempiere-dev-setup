@@ -62,3 +62,10 @@ Examples of usage:
 ## GUI Frontend
 * **Python setup.py** to open the GTK front end for **setup.sh**. You can use this to generate and execute command line for **setup.sh**
 * **setup.html** a simple html and javascript front end for **setup.sh**. Open in browser to generate command line for **setup.sh**.
+
+## Windows 
+* Option 1 is by the use of WSL.
+* Option 2 is to use the Git bash shell that's part of the Git installation for Windows.
+  * Need to install wget and maven. I uses scoop (https://scoop.sh/) to install both but you can use whatever means you prefer to.
+  * Installation of JDK is optional. The script will use the JRE bundle with Eclipse if you don't already have a JDK install.
+  
