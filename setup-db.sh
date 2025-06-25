@@ -174,7 +174,13 @@ if [ "$DB_PORT" == "0" ]; then
   fi
 fi
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+if [ "$OSTYPE" = "msys" ] ; then
+   export MSYS_NO_PATHCONV=1
+   DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd -W )"
+else
+   DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+fi
+
 if [ $IDEMPIERE_SOURCE_FOLDER == "/*" ]; then
 	:
 else
