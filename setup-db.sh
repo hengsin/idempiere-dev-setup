@@ -287,6 +287,8 @@ else
   else
     echo "Database '$DB_USER' is found..."
     if [ "$MIGRATE_EXISTING_DATABASE" = true ]; then
+      export ORACLE_DOCKER_CONTAINER
+      export ORACLE_DOCKER_HOME
       cd utils
       echo "MIGRATE_EXISTING_DATABASE is equal to 'true'. Synchronizing database..."
       ./RUN_SyncDB.sh
