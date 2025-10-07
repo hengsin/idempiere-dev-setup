@@ -201,19 +201,19 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-ECLIPSE_DOWNLOAD=eclipse-jee-2025-03-R-linux-gtk-x86_64.tar.gz
-JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.6.v20250130-0529"
+ECLIPSE_DOWNLOAD=eclipse-jee-2025-09-R-linux-gtk-x86_64.tar.gz
+JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.8.v20250724-1412"
 #msys is git bash for windows
 if [ "$OSTYPE" = "msys" ] ; then
-	ECLIPSE_DOWNLOAD=eclipse-jee-2025-03-R-win32-x86_64.zip
-	JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_21.0.6.v20250130-0529"
+	ECLIPSE_DOWNLOAD=eclipse-jee-2025-09-R-win32-x86_64.zip
+	JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_21.0.8.v20250724-1412"
 fi
 
 if [ ! -f "$ECLIPSE_DOWNLOAD" ]; then
         echo
         echo "*** Download Eclipse ***"
         echo
-   	 wget https://download.eclipse.org/technology/epp/downloads/release/2025-03/R/"$ECLIPSE_DOWNLOAD"
+   	 wget https://download.eclipse.org/technology/epp/downloads/release/2025-09/R/"$ECLIPSE_DOWNLOAD"
 fi
 if [ ! -d $ECLIPSE ]; then
         echo
@@ -228,9 +228,9 @@ if [ ! -d $ECLIPSE ]; then
 fi
 
 if [ "$OSTYPE" = "msys" ] ; then
-	ECLIPSE_JRE="$(pwd -W)/$ECLIPSE/plugins/$JUSTJ_BUNDLE/jre/"
+	ECLIPSE_JRE="$(pwd -W)/$ECLIPSE/plugins/$JUSTJ_BUNDLE/jre"
 else
-	ECLIPSE_JRE="$(pwd)/$ECLIPSE/plugins/$JUSTJ_BUNDLE/jre/"
+	ECLIPSE_JRE="$(pwd)/$ECLIPSE/plugins/$JUSTJ_BUNDLE/jre"
 fi
 
 if [ "$JAVA_HOME" = "" ] ; then
@@ -271,7 +271,7 @@ echo
 echo "*** Run Maven Build ***"
 echo
 cd "$IDEMPIERE_SOURCE_FOLDER"
-mvn verify
+./mvnw verify
 
 cd ..
 

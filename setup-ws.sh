@@ -63,11 +63,11 @@ cd $ECLIPSE
 DESTINATION="$(pwd)"
 
 if [ "$OSTYPE" = "msys" ] ; then
-	JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_21.0.6.v20250130-0529"
-	ECLIPSE_JRE="$(pwd -W)/plugins/$JUSTJ_BUNDLE/jre/"
+	JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_21.0.8.v20250724-1412"
+	ECLIPSE_JRE="$(pwd -W)/plugins/$JUSTJ_BUNDLE/jre"
 else
-	JUSTJ_BUNDLE="org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.6.v20250130-0529"	
-	ECLIPSE_JRE="$(pwd)/plugins/$JUSTJ_BUNDLE/jre/"
+	JUSTJ_BUNDLE=""org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.8.v20250724-1412	
+	ECLIPSE_JRE="$(pwd)/plugins/$JUSTJ_BUNDLE/jre"
 fi
 
 if [ "$JAVA_HOME" = "" ] ; then
