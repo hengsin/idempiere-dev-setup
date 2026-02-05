@@ -79,6 +79,6 @@ Examples of usage:
 
 ## Gemini CLI
 ### User scope
-gemini skills install https://github.com/user/repo.git
+gemini skills install https://github.com/hengsin/idempiere-dev-setup.git
 ### Workspace scope
-gemini skills install https://github.com/user/repo.git --scope workspace
+gemini skills install https://github.com/hengsin/idempiere-dev-setup.git --scope workspace
