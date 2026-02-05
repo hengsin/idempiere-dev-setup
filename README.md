@@ -76,3 +76,9 @@ Examples of usage:
   * To use the python frontend, you need to install python3 and the require dependencies using pacman:
   
     pacman -S python mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-python3 mingw-w64-ucrt-x86_64-python3-gobject
+
+## Gemini CLI
+### User scope
+gemini skills install https://github.com/user/repo.git
+### Workspace scope
+gemini skills install https://github.com/user/repo.git --scope workspace
