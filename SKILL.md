@@ -68,4 +68,8 @@ To configure the database and server environment without setting up the Eclipse 
   `./setup.sh --skip-setup-db`
 - **Re-configuring Database:**
   `./setup.sh --skip-setup-ws --db-pass newpassword`
+
+## Instructions
 - Before running any setup scripts, check the operating system. If on Windows, use git-bash.exe to execute the .sh files. If Git Bash is not found, ask the user to switch to a WSL terminal.
+- Perform setup in current folder, not from the skill folder. Please get user confirmation for current working folder before start running of the setup workflow.
+- If on Linux, copy eclipse.sh from the skill folder to the user confirm destination folder. Please only copy eclipse.sh, not other files.

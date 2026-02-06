@@ -3,7 +3,7 @@ ECLIPSE=${ECLIPSE:-eclipse}
 INSTALL_COPILOT=false
 IDEMPIERE_SOURCE_FOLDER=${IDEMPIERE_SOURCE_FOLDER:-idempiere}
 XTEXT_RUNTIME_REPOSITORY=https://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.35.0
-TARGETPLATFORM_DSL_REPOSITORY=https://download.eclipse.org/cbi/updates/tpd/nightly/N202403260932
+TARGETPLATFORM_DSL_REPOSITORY=https://download.eclipse.org/justj?file=cbi/updates/tpd/release/3.0.0
 MWE_REPOSITORY=https://download.eclipse.org/modeling/emft/mwe/updates/releases/2.18.0/
 EMF_REPOSITORY=https://download.eclipse.org/modeling/emf/emf/builds/release/2.38.0
 LSP4_REPOSITORY="https://download.eclipse.org/lsp4e/releases/latest/"
@@ -53,7 +53,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-if [[ $IDEMPIERE_SOURCE_FOLDER == "/*" ]]; then
+if [[ "$IDEMPIERE_SOURCE_FOLDER" == /* ]]; then
 	:
 else
 	IDEMPIERE_SOURCE_FOLDER="$DIR/$IDEMPIERE_SOURCE_FOLDER"	
@@ -77,23 +77,26 @@ fi
 echo
 echo "*** Install XText Runtime ***"
 echo
-./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
+./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director -Declipse.log.level=ERROR \
     -repository $XTEXT_RUNTIME_REPOSITORY,$MWE_REPOSITORY,$EMF_REPOSITORY -destination "$DESTINATION" \
     -installIU "org.eclipse.xtext.runtime.feature.group,org.eclipse.xtext.ui.feature.group,org.eclipse.emf.mwe2.runtime,org.eclipse.emf.codegen.ecore.xtext,org.eclipse.emf.ecore.xcore.feature.group" 
 
 echo
 echo "*** Install CBI Target Platform DSL Editor ***"
 echo
-./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
+./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director -Declipse.log.level=ERROR \
     -repository $TARGETPLATFORM_DSL_REPOSITORY -destination "$DESTINATION" \
     -installIU org.eclipse.cbi.targetplatform.feature.feature.group
 
+echo
+echo "*** Setup Eclipse workspace for iDempiere at $IDEMPIERE_SOURCE_FOLDER ***"
+echo
 ./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/setup-ws.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 
 ./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.ant.core.antRunner -buildfile "$DIR/loadtargetplatform.xml" -Didempiere="$IDEMPIERE_SOURCE_FOLDER"
 
 if [ "$INSTALL_COPILOT" = true ]; then
-    ./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director \
+    ./eclipse -vm "$ECLIPSE_JRE/bin/java" -nosplash -data "$IDEMPIERE_SOURCE_FOLDER" -application org.eclipse.equinox.p2.director -Declipse.log.level=ERROR \
     -repository $LSP4_REPOSITORY,$COPILOT_REPOSITORY -destination "$DESTINATION" \
     -installIU "com.microsoft.copilot.eclipse.feature.feature.group" 
 fi

@@ -23,6 +23,8 @@ ECLIPSE=${ECLIPSE:-eclipse}
 INSTALL_COPILOT=false
 MIGRATE_EXISTING_DATABASE=${MIGRATE_EXISTING_DATABASE:-true}
 
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
 POSITIONAL_ARGS=()
 
 while [ $# -gt 0 ]; do
@@ -213,16 +215,16 @@ if [ ! -f "$ECLIPSE_DOWNLOAD" ]; then
         echo
         echo "*** Download Eclipse ***"
         echo
-   	 wget https://download.eclipse.org/technology/epp/downloads/release/2025-09/R/"$ECLIPSE_DOWNLOAD"
+   	wget https://download.eclipse.org/technology/epp/downloads/release/2025-09/R/"$ECLIPSE_DOWNLOAD"
 fi
 if [ ! -d $ECLIPSE ]; then
         echo
         echo "*** Extract Eclipse ***"
         echo
 	if [ "$OSTYPE" = "msys" ] ; then
-		unzip "$ECLIPSE_DOWNLOAD"
+	   unzip "$ECLIPSE_DOWNLOAD"
 	else
-       	tar --warning=no-unknown-keyword -xvf "$ECLIPSE_DOWNLOAD"
+       	   tar --warning=no-unknown-keyword -xvf "$ECLIPSE_DOWNLOAD"
 	fi
     ECLIPSE=eclipse
 fi
@@ -266,20 +268,23 @@ if [ ! -f jython-standalone-2.7.4.jar ]; then
 	echo
 	wget https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.4/jython-standalone-2.7.4.jar
 fi
+JYTHON_JAR_FOLDER_PATH=$(cd "$(dirname "jython-standalone-2.7.4.jar")" >/dev/null 2>&1 ; pwd -P)
+export JYTHON_JAR_FOLDER_PATH
 
 echo
 echo "*** Run Maven Build ***"
 echo
 cd "$IDEMPIERE_SOURCE_FOLDER"
+IDEMPIERE_SOURCE_FOLDER="$PWD"
 ./mvnw verify
 
 cd ..
 
 if [ "$SETUP_WS" = true ]; then
   if [ "$INSTALL_COPILOT" = true ]; then
-    ./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER" --install-copilot
+    "$SCRIPT_DIR"/setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER" --install-copilot
   else
-    ./setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER"
+    "$SCRIPT_DIR"/setup-ws.sh --source "$IDEMPIERE_SOURCE_FOLDER"
   fi
 fi
 
@@ -320,18 +325,18 @@ if [ "$LOAD_IDEMPIERE_ENV" = true ] ; then
 fi
 
 if [ "$DOCKER_POSTGRES_CREATE" = true ] ; then
-	./docker-postgres.sh --db-port $DB_PORT --db-admin-pass $DB_SYSTEM --docker-postgres-name $DOCKER_POSTGRES_NAME
+	"$SCRIPT_DIR"/docker-postgres.sh --db-port $DB_PORT --db-admin-pass $DB_SYSTEM --docker-postgres-name $DOCKER_POSTGRES_NAME
 	sleep 5
         docker ps -a
 fi
 
 if [ "$SETUP_DB" = true ] ; then
   if [ "$DB_TYPE" == "oracle" ] ; then
-    ./setup-db.sh --source "$IDEMPIERE_SOURCE_FOLDER" --db-type $DB_TYPE --db-name $DB_NAME --db-host $DB_HOST --db-port $DB_PORT --db-user $DB_USER --db-pass $DB_PASS \
+    "$SCRIPT_DIR"/setup-db.sh --source "$IDEMPIERE_SOURCE_FOLDER" --db-type $DB_TYPE --db-name $DB_NAME --db-host $DB_HOST --db-port $DB_PORT --db-user $DB_USER --db-pass $DB_PASS \
       --db-admin-pass $DB_SYSTEM --http-host $IDEMPIERE_HOST --http-port $IDEMPIERE_PORT --https-port $IDEMPIERE_SSL_PORT --run-migration-script $MIGRATE_EXISTING_DATABASE \
       --oracle-docker-container $ORACLE_DOCKER_CONTAINER --oracle-docker-home $ORACLE_DOCKER_HOME
   else
-    ./setup-db.sh --source "$IDEMPIERE_SOURCE_FOLDER" --db-type $DB_TYPE --db-name $DB_NAME --db-host $DB_HOST --db-port $DB_PORT --db-user $DB_USER --db-pass $DB_PASS \
+    "$SCRIPT_DIR"/setup-db.sh --source "$IDEMPIERE_SOURCE_FOLDER" --db-type $DB_TYPE --db-name $DB_NAME --db-host $DB_HOST --db-port $DB_PORT --db-user $DB_USER --db-pass $DB_PASS \
       --db-admin-pass $DB_SYSTEM --http-host $IDEMPIERE_HOST --http-port $IDEMPIERE_PORT --https-port $IDEMPIERE_SSL_PORT --run-migration-script $MIGRATE_EXISTING_DATABASE
   fi
 fi
