@@ -181,7 +181,7 @@ else
    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 fi
 
-if [ $IDEMPIERE_SOURCE_FOLDER == "/*" ]; then
+if [ "$IDEMPIERE_SOURCE_FOLDER" == /* ]; then
 	:
 else
 	IDEMPIERE_SOURCE_FOLDER="$DIR/$IDEMPIERE_SOURCE_FOLDER"	
